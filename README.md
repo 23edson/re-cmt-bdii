@@ -22,11 +22,16 @@ fs_personagem em fs_personagem.dat
 
 fs_status em fs_status.dat
 
-Funcionando com o main do grupo anterior:
-somente fs_personagem.
-
 Dicionario de Dados:
 
 dicionario.dat
 
+Estrutura do dicionario.dat
+<nome tabela>'\0'<nome tabela>.dat'\0'
+
+Estruturas das tabelas
+int(numero de colunas) praticamente igual do primeiro '.dat'
+nome campo
+tipo campo
+tamanho campo
 
