@@ -2,13 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define TNAME_LENGHT 20
-#define BUFFER_SIZE 16
-#define BUFFER_PREENCHIDO 0
-#define ERRO_ARQUIVO 1
-#define TABELA_NOTFOUND 2
-#define BUFFER_VAZIO 3
-
+#include "erro.h"
 typedef struct field
 {
     char fName[TNAME_LENGHT];
@@ -42,7 +36,7 @@ void findNextAvaliable(buffer *bPool);
 void applyReplacementPolicies(buffer *bPool);
 
 //Insere um novo elemento no buffer
-void bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
+int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
 
 //Função que vai ler os arquivos de dados e metadados
 int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arquivo);

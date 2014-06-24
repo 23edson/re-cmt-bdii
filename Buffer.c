@@ -55,7 +55,7 @@ void applyReplacementPolicies(buffer *bPool)
 
 	}
 }
-void bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght)
+int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght)
 {
 	//Primeiro verifica se o buffer está cheio, caso esteja ele aplica as políticas de troca
 	if(bPool->countItems >= BUFFER_SIZE)
@@ -64,14 +64,17 @@ void bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght)
 	}
 	//É inserido na próxima página disponível
 	bPool->bp[bPool->nextPageAvaliable].diskSeek = diskSeek;
-	bPool->bp[bPool->nextPageAvaliable].data = (char *)malloc(tupleLenght*sizeof(char));
+	if((bPool->bp[bPool->nextPageAvaliable].data = (char *)malloc(tupleLenght*sizeof(char)))==NULL){
+		return OUT_MEMORIA;
+	};
 	strcpy(bPool->bp[bPool->nextPageAvaliable].data,tuple);
 	bPool->bp[bPool->nextPageAvaliable].pinCount = 0;
 	bPool->bp[bPool->nextPageAvaliable].rewriteBit = 0;
 	bPool->countItems ++;
 	//É procurado a próxima página disponível
 	findNextAvaliable(bPool);
-}
+	return 0;
+};
 int showBuffer(buffer *bufferPool)
 {
 	if (!bufferPool->countItems) return BUFFER_VAZIO;
@@ -107,8 +110,14 @@ int showBuffer(buffer *bufferPool)
 int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arquivo)
 {
 	//Abertura dos arquivos de dados e de metadados
-	char *name = (char*)malloc(50);
-	char *caminho = (char*)malloc(50);
+	char *name = NULL;
+	if((name=(char*)malloc(50))==NULL){
+		return OUT_MEMORIA;
+	};
+	char *caminho=NULL; 
+	if((caminho=(char*)malloc(50))==NULL){
+		return OUT_MEMORIA;
+	};
 	char caractere;
 	int i = 0, achou=0;
 	FILE *fp = fopen(arquivo,"r");
@@ -141,7 +150,10 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	int fieldCount = 0;
 	//Lê a quantidade de campos no arquivo de metadados
 	fread(&fieldCount,sizeof(int),1,arq); // fieldcount -> numero de campos da tabela
-	fieldList = malloc(sizeof(field) * fieldCount); // aloca lista com o numero de campos que tem a tabela
+	if((fieldList = malloc(sizeof(field) * fieldCount))==NULL){
+			return OUT_MEMORIA;
+	}; // aloca lista com o numero de campos que tem a tabela
+	
 	initBuffer(bufferPool,BUFFER_SIZE,fieldList,fieldCount);
 	i = 0;
 	int j,breakPoint = 0;
@@ -163,10 +175,19 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	}
 	tupleLenght += fieldCount;
 	//Cria os campos temporários para a montagem da tupla
-	int *tInt = malloc(sizeof(int));
-	double *tDouble = malloc(sizeof(double));
+	int *tInt = NULL;
+	if((tInt=malloc(sizeof(int)))==NULL){
+		return OUT_MEMORIA;
+	};
+	double *tDouble = NULL;
+	if((tDouble=malloc(sizeof(double)))==NULL){
+		return OUT_MEMORIA;
+	};
 	char *tChar = NULL;
-	char *tTuple = malloc(sizeof(char)*tupleLenght);
+	char *tTuple = NULL;
+	if((tTuple=malloc(sizeof(char)*tupleLenght))==NULL){
+		return OUT_MEMORIA;
+	};
 	//Começa a leitura dos dados.
 	for(strcpy(tTuple,"");;strcpy(tTuple,""))
 	{
@@ -191,7 +212,9 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 			else if(fieldList[i].fType == 'S')
 			{
 				//String
-				tChar = (char *)malloc(sizeof(char) * fieldList[i].fLenght);
+				if((tChar = (char *)malloc(sizeof(char) * fieldList[i].fLenght))==NULL){
+					return OUT_MEMORIA;
+				};
 				fread(tChar,sizeof(char),fieldList[i].fLenght,arq);
 				sprintf(tTuple, "%s%s",tTuple,tChar);
 				if (i != (fieldCount-1)) strcat(tTuple, "*");
@@ -200,7 +223,9 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 			else if(fieldList[i].fType == 'C')
 			{
 				//Caracter
-				tChar = (char *)malloc(sizeof(char));
+				if((tChar = (char *)malloc(sizeof(char)))==NULL){
+					return OUT_MEMORIA;
+				};
 				fread(tChar,sizeof(char),1,arq);
 				sprintf(tTuple, "%s%s",tTuple,tChar);
 			}
@@ -208,11 +233,16 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 		//Se o arquivo de dados chegar ao fim, as tuplas param de ser entregues ao bufferPool
 		if(feof(arq)) break;
 		i = 0;
-		bufferInsert(bufferPool,tTuple,ftell(arq)-tupleLenght,tupleLenght);
-
-	}
+		if(bufferInsert(bufferPool,tTuple,ftell(arq)-tupleLenght,tupleLenght)==OUT_MEMORIA)
+			return OUT_MEMORIA;
+	};
 	//Fecha o arquivo de dados
 	fclose(arq);
-	
+	free(name);
+	free(caminho);
+	free(tInt);
+	free(tChar);
+	free(tDouble);
+	free(tTuple);
 	return BUFFER_PREENCHIDO;
 }
