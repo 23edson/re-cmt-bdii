@@ -1,5 +1,3 @@
-#define TNAME_LENGHT 20
-#define BUFFER_SIZE 16
 #define ERRO_ARQUIVO 1
 #define TABELA_NOTFOUND 2
 #define BUFFER_VAZIO 3

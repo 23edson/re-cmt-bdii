@@ -35,3 +35,6 @@ nome campo
 tipo campo
 tamanho campo
 
+Alterado por EDSLUC:
+função void bufferInsert para 
+int bufferInsert

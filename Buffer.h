@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "erro.h"
-typedef struct field
-{
+#define TNAME_LENGHT 20
+#define BUFFER_SIZE 16
+typedef struct field{
     char fName[TNAME_LENGHT];
     char fType;
     int fLenght;

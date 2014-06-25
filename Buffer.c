@@ -136,7 +136,8 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 					i++;
 				} while(caractere != '\0');
 				break; // sai do loop pois encontrou a tabela
-			} else { 
+			}
+			else{ 
 				memset(name,0,strlen(name));
 				i=0;
 			}
@@ -147,6 +148,10 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	fclose(fp); // fecha arquivo do dicionario
 	FILE *arq = fopen(caminho,"r"); // abre arquivo de metadados e de dados
 	if(arq == NULL) return ERRO_ARQUIVO;	
+	FILE *dic =NULL;
+	dic=fopen("colunas.dat","r");
+	if(dic==NULL)
+	return ERRO_ARQUIVO;
 	int fieldCount = 0;
 	//Lê a quantidade de campos no arquivo de metadados
 	fread(&fieldCount,sizeof(int),1,arq); // fieldcount -> numero de campos da tabela
@@ -165,7 +170,7 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 			//Encontra o nome do campo
 			fread(&caractere,sizeof(char),1,fp);
 			if (caractere != '\0') fieldList[i].fName[j] = caractere;
-			if(caractere == '\0') breakPoint = j;
+			else breakPoint = j;
 		}
 		breakPoint = 0;
 		fread(&fieldList[i].fType,sizeof(char),1,fp);
@@ -187,7 +192,8 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	char *tTuple = NULL;
 	if((tTuple=malloc(sizeof(char)*tupleLenght))==NULL){
 		return OUT_MEMORIA;
-	};
+	};//até aqui vamos deixar no arquivo colunas.dat
+	fclose(dic); 
 	//Começa a leitura dos dados.
 	for(strcpy(tTuple,"");;strcpy(tTuple,""))
 	{
