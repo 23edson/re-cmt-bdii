@@ -1,11 +1,11 @@
 #include "Buffer.h"
-int create(char *a1){//dicionario
+int createDic(char *a1){//dicionario
 		FILE *fpd=NULL;
 	if((fpd=fopen("dicionario.dat","r"))==NULL)
-		printf("não foi possivel abrir dicionario");
+		return ERRO_ARQUIVO;
 	FILE *fp=NULL;
 	if((fp=fopen("dictionary.dat","w"))==NULL)
-		printf("não foi possivel criar novo arquivo");
+		return ERRO_ARQUIVO;
 	char* a2 =NULL;
 	a2=(char*)malloc(sizeof(char)*50);
 	fwrite(a1,sizeof(char),12,fp);
@@ -31,11 +31,11 @@ int create(char *a1){//dicionario
 	free(a2);
 	return 0;
 }
-int read(){//dicionario
+int readDic(){//dicionario
 	char *a2=NULL;
 	FILE *fp=NULL;
 	if((fp=fopen("dictionary.dat","r"))==NULL)
-		printf("não foi possivel criar novo arquivo");
+		return ERRO_ARQUIVO;
 	a2=(char*)malloc(sizeof(char)*50);
 	int i=0;
 	for(;i<50&&feof(fp)==0;i++){
@@ -50,8 +50,21 @@ int read(){//dicionario
 	free(a2);
 	return 0;
 }
+int createCol(char *a1){
+	FILE *fp=NULL,*fpd=NULL;
+	char *a2=NULL;
+	if((fpd=fopen("dictionary.dat","r"))==NULL)
+		return ERRO_ARQUIVO;
+	a2=(char*)malloc(sizeof(char)*50);
+	
+	fclose(fpd);
+	free(a2);
+	return 0;
+	
+}
+
 int main(){
-	create("colunas.dat");
-	read();
+	createDic("colunas.dat");//cria o dictionary.dat
+	readDic();
 	return 0;
 }
