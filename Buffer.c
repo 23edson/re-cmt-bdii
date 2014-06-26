@@ -124,35 +124,31 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	if(fp == NULL) return ERRO_ARQUIVO;
 	do {
 		fread(&caractere,sizeof(char),1,fp);
-		if (caractere != '\0') name[i] = caractere;
+		if (caractere != '\0') caminho[i] = caractere;
 		i++;
-		if (caractere == '\0') {
-			if (strcmp(name,nomeTabela) == 0) {
-				i = 0;
-				achou = 1;
-				do {
-					fread(&caractere,sizeof(char),1,fp);
-					if (caractere != '\0') caminho[i] = caractere;
-					i++;
-				} while(caractere != '\0');
+	} while(caractere != '\0');	
+	if (caractere == '\0') {{{
+		do {
+			fread(&caractere,sizeof(char),1,fp);
+			if (caractere != '\0') name[i] = caractere;
+			i++;
+			if((strcmp(name,nomeTabela))==0){	
+				achou=1;
 				break; // sai do loop pois encontrou a tabela
 			}
 			else{ 
 				memset(name,0,strlen(name));
 				i=0;
 			}
-		}
-		
-	} while(!feof(fp));
+		}while(!feof(fp));
+	}
 	if (achou == 0) return TABELA_NOTFOUND;
 	fclose(fp); // fecha arquivo do dicionario
-	FILE *arq = fopen(caminho,"r"); // abre arquivo de metadados e de dados
-	if(arq == NULL) return ERRO_ARQUIVO;	
-	FILE *dic =NULL;
-	dic=fopen("colunas.dat","r");
-	if(dic==NULL)
-	return ERRO_ARQUIVO;
+	FILE *arq = fopen(caminho,"r"); // abre arquivo de metadados
+	//alteração para somente metadados.  os dados foram para baixo em outro arquivo
+	if(arq == NULL) return ERRO_ARQUIVO;
 	int fieldCount = 0;
+	
 	//Lê a quantidade de campos no arquivo de metadados
 	fread(&fieldCount,sizeof(int),1,arq); // fieldcount -> numero de campos da tabela
 	if((fieldList = malloc(sizeof(field) * fieldCount))==NULL){
@@ -178,7 +174,7 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 		//Vai montando o tamanho da tupla com base nos tamanhos dos campos encontrados
 		tupleLenght += fieldList[i].fLenght;
 	}
-	tupleLenght += fieldCount;
+	tupleLenght += fieldCount;//até aqui vamos deixar no arquivo colunas.dat
 	//Cria os campos temporários para a montagem da tupla
 	int *tInt = NULL;
 	if((tInt=malloc(sizeof(int)))==NULL){
@@ -192,8 +188,8 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	char *tTuple = NULL;
 	if((tTuple=malloc(sizeof(char)*tupleLenght))==NULL){
 		return OUT_MEMORIA;
-	};//até aqui vamos deixar no arquivo colunas.dat
-	fclose(dic); 
+	};
+	 
 	//Começa a leitura dos dados.
 	for(strcpy(tTuple,"");;strcpy(tTuple,""))
 	{

@@ -1,66 +1,57 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-
-int HeyCreateTable(char *comando){
+#include "Buffer.h"
+int create(char *a1){//dicionario
+		FILE *fpd=NULL;
+	if((fpd=fopen("dicionario.dat","r"))==NULL)
+		printf("não foi possivel abrir dicionario");
+	FILE *fp=NULL;
+	if((fp=fopen("dictionary.dat","w"))==NULL)
+		printf("não foi possivel criar novo arquivo");
+	char* a2 =NULL;
+	a2=(char*)malloc(sizeof(char)*50);
+	fwrite(a1,sizeof(char),12,fp);
 	
-	
-	char* a2[] = { "create", "table" };
-	char* types[] = { "string", "int", "double", "char"};
-	char* att[];
-	char* tipoAtt[];
-	int i,j, = 0;
-	int control = 0;
-	int cWord = 0;
-	int initAtt = 0;
-	int parenteses = 0;
-	int tam = strlen (comando);
-	char c;
-	char word[50];
-	word[0] ='\0';
-	while(control < tam){
-		c = comando[control];
-		
-		
-			
-		if( c != ' '){
-			if( c == '('){
-				initAtt = 1;
-				parenteses++;
-				while( c != ')' && parenteses > 0){
-					 control++;
-					 c = comando[control];
-					 if(c != ' '){
-						 att[j] = c;
-						 if(comando[control + 1] == ' '){
-							 control++;
-							 j++;
-							 
-					 }
+	int i=0;
+	for(;i<50&&feof(fpd)==0;i++){
+		fread(&a2[i],sizeof(char),1,fpd);
+		if(a2[i]=='\0'){
+			if(a2[i-4]!='.'){
+				fwrite(a2,sizeof(char),strlen(a2)+1,fp);
+				
+				i=(-1);
+				memset(a2,0,strlen(a2)+4);
 			}
 			else{
-				word[cWord] = c;
-				if(comando[control + 1] == ' '){
-					word[cWord + 1] = '\0';
-					if( strcmp(word, a2[i]) != 0){
-						return -1;
-					}else {word[0] = '\0'; cWord = -1; i++;}
-				}
-				cWord++; 
+				i=(-1);
+				memset(a2,0,strlen(a2)+4);	
 			}
 		}
-		control++;
-	}
-	return 1;
+	}	
+	fclose(fp);
+	fclose(fpd);
+	free(a2);
+	return 0;
+}
+int read(){//dicionario
+	char *a2=NULL;
+	FILE *fp=NULL;
+	if((fp=fopen("dictionary.dat","r"))==NULL)
+		printf("não foi possivel criar novo arquivo");
+	a2=(char*)malloc(sizeof(char)*50);
+	int i=0;
+	for(;i<50&&feof(fp)==0;i++){
+		fread(&a2[i],sizeof(char),1,fp);
+		if(a2[i]=='\0'){	
+			printf("%s\n",&a2[0]);
+			i=(-1);
+			memset(a2,0,50);	
+		}
+	}	
+	fclose(fp);
+	free(a2);
+	return 0;
 }
 int main(){
-
-	char *teste = "create table cliente( nome string(10), idade int);"; 
-	
-	int i = HeyCreateTable(teste);
-	
-	if( i < 0) printf("erro"); 
-
+	create("colunas.dat");
+	read();
 	return 0;
-	
 }
