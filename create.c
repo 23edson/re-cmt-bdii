@@ -1,5 +1,5 @@
 #include "Buffer.h"
-int createDic(char *a1){//dicionario
+int createDic(char *a1){//dicionario a partir do dicionario do grupo anterior
 		FILE *fpd=NULL;
 	if((fpd=fopen("dicionario.dat","r"))==NULL)
 		return ERRO_ARQUIVO;

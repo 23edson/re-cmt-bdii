@@ -5,6 +5,9 @@
 #include "erro.h"
 #define TNAME_LENGHT 20
 #define BUFFER_SIZE 16
+#define CONST 30
+#define BASE 10
+#define CONST_MAX 94
 typedef struct field{
     char fName[TNAME_LENGHT];
     char fType;
@@ -26,17 +29,6 @@ typedef struct buffer
 	int fieldCount;
 	bufferPage bp[BUFFER_SIZE];
 }buffer;
-typedef struct columnBase
-{
-	char nome[TNAME_LENGHT*2];
-	int ncol;
-	field *fieldList;
-}columnBase;
-typedef struct tabelaBase
-{
-	char fisico[50];
-	columnBase *co;
-}tabelaBase;
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
 

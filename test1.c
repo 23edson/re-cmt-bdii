@@ -2,11 +2,11 @@
 
 /*
  * 
- * @defines
+ * @defines constantes
  **/  
 #define CONST 30
 #define BASE 10
-#define CONST_MAX 94
+#define CONST_MAX 94 
 #define CONST_META 29
 #define FILE_NOT_FOUND -5 //provisório
 #define VALUE_ALREADY_EXISTS -6
@@ -14,6 +14,57 @@
 #define OKAY -1 
 #define ABORT -8
 
+typedef struct Ctabela{
+		int id;
+		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
+		char fnome[CONST];
+		char dir[CONST];
+	}criar;
+
+
+typedef struct Attribute
+{
+	char tValue[TNAME_LENGHT];
+}Attribute;
+
+typedef struct MultInsert //estruturas para insert ( nao definitiva)
+{
+	Attribute *nextAtt; 
+	Attribute valor;
+}MultInsert;
+
+int searchTable(FILE *arquivo, char *Tabela, criar **myTable){
+	
+	if(!arquivo)
+		return FILE_NOT_FOUND;
+	int contador = 0;
+	criar *table = (criar *)malloc(sizeof(criar));
+	if(!table)
+		return 0;
+	
+	fseek( arquivo, 0, SEEK_END);
+	int total = ftell(arquivo);
+	rewind(arquivo);
+	
+	for(;contador < total;){
+		fread( &(*myTable)->id, sizeof(int), 1, arquivo);	
+		fread( (*myTable)->lnome, sizeof(char), CONST, arquivo);
+		fread( (*myTable)->fnome, sizeof(char), CONST, arquivo);
+		fread( (*myTable)->dir, sizeof(char), CONST, arquivo);
+		
+		if( strcmp( (*myTable)->lnome, Tabela) == 0) {//caso a tabela já exista
+			free(table);
+			fclose(arquivo);
+			return OKAY;
+		} 
+		contador += CONST_MAX ;
+	}
+	free(table);
+	fclose(arquivo);
+	return -84; //erro table not found
+}
+		
+		
 int testeTam( int numero, int count){
 	//Essa função retorna a quantidade de digitos de um numero
 	int Pgroup = 10;
@@ -124,7 +175,7 @@ int createAttibutes( int id, field *atributos, int numberAtt){
 	//A finalidade dessa função é gerar um nome para o arquivo de dados da tabela x. Ex: se a o nome do ultimo arquivo foi : file_1.dat
 	//Então o próximo será file_2.dat
 	char caracter = 'a';
-	bool isNumber = false;
+	int isNumber = 0;
 	char *number;
 	int shift = 0;
 	int i = 0;
@@ -138,7 +189,7 @@ int createAttibutes( int id, field *atributos, int numberAtt){
 	while( i < max){ //Este while procura o número do arquivo dentro da string.
 		caracter = last[i]; //Assuma que o número sempre estará após o underscore e antes do .dat
 		if(caracter == '_'){
-			isNumber = true;
+			isNumber = 1;
 		}
 		else if(isNumber){
 			number[shift] = caracter;
@@ -195,13 +246,7 @@ int createAttibutes( int id, field *atributos, int numberAtt){
 
 int createTable( char *TableName, field *Attributes, int numberAtt){
 	
-	struct Ctabela{
-		int id;
-		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
-		char fnome[CONST];
-		char dir[CONST];
-	};
-	typedef struct Ctabela criar;
+	
 	
 	FILE *arquivo = fopen("files/fs_tabela.dat", "a+"); //Localização fixa
 	
@@ -228,7 +273,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 		fread( ConstTab->fnome, sizeof(char), CONST, arquivo); //puts(ConstTab->fnome);
 		fread( ConstTab->dir, sizeof(char), CONST, arquivo);
 		
-		if( strcmp( ConstTab->lnome, TableName) == 0) {puts(ConstTab->lnome);free(ConstTab);return -84;} //caso a tabela já exista
+		if( strcmp( ConstTab->lnome, TableName) == 0) {free(ConstTab);return -84;} //caso a tabela já exista
 		//fseek( arquivo, CONST*2, SEEK_CUR);
 		i += CONST_MAX ; //printf("val %d ", i);
 	}
@@ -271,14 +316,100 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	
 	return getErro;
 }
-
+int insertInto( char *tableName, Attribute *Attributes, int Quantidade){
+	
+	FILE *table = fopen("files/fs_tabela.dat", "r");
+	if(!table)
+		return FILE_NOT_FOUND;
+	
+	FILE *metadados = NULL;
+	FILE *newFile = NULL;;
+	
+	int copiar = 0;
+	long int pos = -1;
+	int i = 0;
+	
+	criar *myTable = NULL;
+	myTable = (criar *)malloc(sizeof(criar));
+	
+	
+	int getErro = searchTable(table, tableName, &myTable);
+	
+	if(getErro != OKAY)
+		return getErro;
+	
+	char *diretorio = (char *)malloc(sizeof(char)* CONST);
+	
+	strcat(diretorio, myTable->dir);
+	strcat(diretorio, myTable->fnome);
+	newFile = fopen(diretorio, "r");
+	
+	if(!newFile)
+		newFile = fopen(diretorio, "a+");
+		
+	
+	metadados = fopen("files/fs_coluna.dat", "r");
+	if(!metadados)
+		return FILE_NOT_FOUND;
+		
+	fseek(metadados,0,SEEK_END);
+	long total = ftell(metadados); //Tamanho do arquivo
+	rewind(metadados);
+		
+	//copiar = myTable->id;
+	field *mDados;
+	int AttCount = 0;
+	while( copiar != myTable->id && i < total){ //Procura a posicao inicial do metadados
+		fread( &copiar, sizeof(int), 1, metadados);
+		if(copiar == myTable->id)
+			pos = ftell(metadados);
+			
+		else
+		fseek( metadados, CONST_META - sizeof(int) , SEEK_CUR);
+		i +=ftell(metadados);
+		
+	}
+	if( pos == -1)
+		return 0; //Table Not Found
+		
+	while( copiar == myTable->id && i < total){ //Conta os atributos 
+		fread( &copiar, sizeof(int), 1, metadados);
+		fseek( metadados, CONST_META - sizeof(int) , SEEK_CUR);
+		AttCount ++;
+	}
+	mDados = (field *)malloc(sizeof(field) * AttCount);
+	
+	fseek(metadados, pos, SEEK_SET);
+	
+	copiar = 0;
+	int endLoop = 0;
+	int junk;
+	while( (endLoop < total) && (copiar < AttCount)){
+		fread( &junk, sizeof(int), 1, metadados);
+		fread( mDados[copiar].fName, sizeof(char), TNAME_LENGHT, metadados);
+		fread( &mDados[copiar].fType, sizeof(char),1, metadados);
+		fread( &mDados[copiar].fLenght, sizeof(int), 1, metadados);
+		
+		copiar++;
+		
+		endLoop += CONST_META;
+	}
+	
+	return OKAY;
+}
 
 
 int main(){
 	
+	
 	field *atributos; //o usuario cria um vetor para os atributos que ele ira criar;
+	Attribute *inserts;
+	//int contador = 0;
+	
 	
 	atributos = (field *) malloc(sizeof(field)* 2); //Neste caso tera dois atributos;
+	inserts = (Attribute *) malloc(sizeof(Attribute) * 2);  //Número de atributos que a tabela possui
+	
 	//int a = sizeof( atributos) / sizeof(atributos[0]);
 	//printf("vv%d  " , sizeof(atributos));
 	strcpy(atributos[0].fName, "Nome");
@@ -291,9 +422,21 @@ int main(){
 	
 	//createTable( "Cliente", atributos,2);
 	//checkMeta( atributos[0]);
-	int erro = createTable( "Cliente", atributos, 2);
-	printf("erro : %d ", erro);
+	//int erro = createTable( "Cliente", atributos, 2);
+	//printf("erro : %d ", erro);
+	int erro = -1;
+	if(erro == OKAY){
 	
+		strcpy(inserts[0].tValue, "Mathew");
+		strcpy(inserts[1].tValue, "35"); //TUPLA 1 PARA A TABELA CLIENTE ( nome, idade)
+		
+		insertInto("Cliente", inserts, 2);
+		
+		/*strcpy(inserts[0].tValue, "Andrew");
+		strcpy(inserts[1].tValue, "90"); //TUPLA 2 PARA A TABELA CLIENTE ( nome, idade)
+		
+		insertInto("Cliente", inserts, 2);*/
+	}
 	/*struct meta{
 		int id;
 		char atnome[40];
