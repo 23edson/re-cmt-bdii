@@ -124,24 +124,25 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	if(fp == NULL) return ERRO_ARQUIVO;
 	do {
 		fread(&caractere,sizeof(char),1,fp);
-		if (caractere != '\0') caminho[i] = caractere;
+		if (caractere != '\0') name[i] = caractere;
 		i++;
-	} while(caractere != '\0');	
-	if (caractere == '\0') {{{
-		do {
-			fread(&caractere,sizeof(char),1,fp);
-			if (caractere != '\0') name[i] = caractere;
-			i++;
+		if (caractere == '\0') {
 			if((strcmp(name,nomeTabela))==0){	
 				achou=1;
-				break; // sai do loop pois encontrou a tabela
-			}
-			else{ 
-				memset(name,0,strlen(name));
 				i=0;
-			}
-		}while(!feof(fp));
-	}
+				do {
+					fread(&caractere,sizeof(char),1,fp);
+					if (caractere != '\0') caminho[i] = caractere;
+					i++;
+				} while(caractere != '\0');	
+				break; // sai do loop pois encontrou a tabela
+				}
+				else{ 
+					memset(name,0,strlen(name));
+					i=0;
+				}
+		};
+	}while(!feof(fp));
 	if (achou == 0) return TABELA_NOTFOUND;
 	fclose(fp); // fecha arquivo do dicionario
 	FILE *arq = fopen(caminho,"r"); // abre arquivo de metadados

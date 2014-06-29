@@ -104,7 +104,7 @@ int checkMeta( field estrutura[], int numberAtt){
 			if( !verifyCaracter(estrutura->fName[i])) // de A até z na tabela ascii
 				return VALOR_INVALIDO;
 			
-				i++;
+			i++;
 		}
 		i=0;
 		if(!(estrutura->fType == 'S' || estrutura->fType == 'I') || (estrutura->fType == 'D' || estrutura->fType == 'C'))	
@@ -323,7 +323,7 @@ int insertInto( char *tableName, Attribute *Attributes, int Quantidade){
 		return FILE_NOT_FOUND;
 	
 	FILE *metadados = NULL;
-	FILE *newFile = NULL;;
+	FILE *newFile = NULL;
 	
 	int copiar = 0;
 	long int pos = -1;
