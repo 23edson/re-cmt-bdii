@@ -29,6 +29,12 @@ typedef struct buffer
 	int fieldCount;
 	bufferPage bp[BUFFER_SIZE];
 }buffer;
+typedef struct Ctabela{
+		int id;
+		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
+		char fnome[CONST];
+		char dir[CONST];
+	}criar;
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
 

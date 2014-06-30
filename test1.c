@@ -14,12 +14,7 @@
 #define OKAY -1 
 #define ABORT -8
 
-typedef struct Ctabela{
-		int id;
-		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
-		char fnome[CONST];
-		char dir[CONST];
-	}criar;
+
 
 
 typedef struct Attribute

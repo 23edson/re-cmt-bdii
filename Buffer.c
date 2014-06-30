@@ -118,40 +118,47 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	if((caminho=(char*)malloc(50))==NULL){
 		return OUT_MEMORIA;
 	};
+	criar *biblio=NULL;
+	biblio=(criar*)malloc(sizeof(criar));
+	if(biblio==NULL)
+		return OUT_MEMORIA;
 	char caractere;
 	int i = 0, achou=0;
 	FILE *fp = fopen(arquivo,"r");
 	if(fp == NULL) return ERRO_ARQUIVO;
 	do {
-		fread(&caractere,sizeof(char),1,fp);
-		if (caractere != '\0') name[i] = caractere;
-		i++;
-		if (caractere == '\0') {
-			if((strcmp(name,nomeTabela))==0){	
-				achou=1;
+		fread(&biblio->id,sizeof(int),1,fp);
+		if(feof(fp)==0){
+			break;
+		}
+		fread(biblio->lnome,sizeof(char),CONST,fp);
+		fread(biblio->fnome,sizeof(char),CONST,fp);
+		fread(biblio->dir,sizeof(char),CONST,fp);
+		if((strcmp(biblio->lnome,nomeTabela))==0){	
+			achou=1;
+			i=0;
+			strcat(caminho,biblio->dir);
+			strcat(caminho,biblio->fnome);
+			break; // sai do loop pois encontrou a tabela
+		}
+		else{ 
+				memset(name,0,strlen(name));
 				i=0;
-				do {
-					fread(&caractere,sizeof(char),1,fp);
-					if (caractere != '\0') caminho[i] = caractere;
-					i++;
-				} while(caractere != '\0');	
-				break; // sai do loop pois encontrou a tabela
-				}
-				else{ 
-					memset(name,0,strlen(name));
-					i=0;
-				}
-		};
+		}
 	}while(!feof(fp));
 	if (achou == 0) return TABELA_NOTFOUND;
 	fclose(fp); // fecha arquivo do dicionario
-	FILE *arq = fopen(caminho,"r"); // abre arquivo de metadados
-	//alteração para somente metadados.  os dados foram para baixo em outro arquivo
+	
+	FILE *arqm=fopen("files/fs_colunas.dat","r");// abre meta-dados
+	if(arqm == NULL) return ERRO_ARQUIVO;
+	
+	FILE *arq = fopen(caminho,"r"); // abre arquivo de dados
 	if(arq == NULL) return ERRO_ARQUIVO;
+	
 	int fieldCount = 0;
 	
 	//Lê a quantidade de campos no arquivo de metadados
-	fread(&fieldCount,sizeof(int),1,arq); // fieldcount -> numero de campos da tabela
+	fread(&fieldCount,sizeof(int),1,arqm); // fieldcount -> numero de campos da tabela
 	if((fieldList = malloc(sizeof(field) * fieldCount))==NULL){
 			return OUT_MEMORIA;
 	}; // aloca lista com o numero de campos que tem a tabela
@@ -165,18 +172,19 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 		for(j = 0;breakPoint == 0; j++)
 		{
 			//Encontra o nome do campo
-			fread(&caractere,sizeof(char),1,fp);
+			fread(&caractere,sizeof(char),1,arqm);
 			if (caractere != '\0') fieldList[i].fName[j] = caractere;
 			else breakPoint = j;
 		}
 		breakPoint = 0;
-		fread(&fieldList[i].fType,sizeof(char),1,fp);
-		fread(&fieldList[i].fLenght,sizeof(int),1,fp);
+		fread(&fieldList[i].fType,sizeof(char),1,arqm);
+		fread(&fieldList[i].fLenght,sizeof(int),1,arqm);
 		//Vai montando o tamanho da tupla com base nos tamanhos dos campos encontrados
 		tupleLenght += fieldList[i].fLenght;
 	}
 	tupleLenght += fieldCount;//até aqui vamos deixar no arquivo colunas.dat
 	//Cria os campos temporários para a montagem da tupla
+	fclose(arqm);
 	int *tInt = NULL;
 	if((tInt=malloc(sizeof(int)))==NULL){
 		return OUT_MEMORIA;
