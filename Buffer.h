@@ -1,6 +1,7 @@
 //Este trabalho utiliza a licença GNU General Public License.
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include "erro.h"
 #define TNAME_LENGHT 20

@@ -17,13 +17,6 @@
 #define VIOLATE_NUMBER_LENGTH -10
 #define TABLE_ALREADY_EXISTS -11
 #define TABLE_NOT_FOUND -12
-struct Ctabela{
-		int id;
-		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
-		char fnome[CONST];
-		char dir[CONST];
-	};
-typedef struct Ctabela criar;
 
 
 typedef struct Attribute
@@ -360,6 +353,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	puts(ConstTab1.dir);*/
 	
 	int getErro = createAttibutes( ConstTab->id, Attributes, numberAtt);
+	//criar o arquivo
 	
 	fclose(arquivo);
 	free(ConstTab);
@@ -474,9 +468,11 @@ int insertInto( char *tableName, Attribute *Attributes){
 	strcat(diretorio, myTable->fnome);
 	newFile = fopen(diretorio, "a+");
 	
-	if(!newFile)
-		return FILE_NOT_FOUND;
-	
+	if(!newFile){
+		if(!(newFile=fopen(diretorio,"w+"))){
+			return FILE_NOT_FOUND;
+		}
+	}
 	copiar = 0; printf("count %d", AttCount);
 	while( copiar < AttCount){
 		
@@ -509,12 +505,12 @@ int main(){
 	
 	
 	field *atributos; //o usuario cria um vetor para os atributos que ele ira criar;
-	//Attribute *inserts;
+	Attribute *inserts;
 	//int contador = 0;
 	
 	
 	atributos = (field *) malloc(sizeof(field)* 4); //Neste caso tera dois atributos;
-	//inserts = (Attribute *) malloc(sizeof(Attribute) * 4);  //Número de atributos que a tabela possui
+	inserts = (Attribute *) malloc(sizeof(Attribute) * 4);  //Número de atributos que a tabela possui
 	
 	//int a = sizeof( atributos) / sizeof(atributos[0]);
 	//printf("vv%d  " , sizeof(atributos));
@@ -539,13 +535,13 @@ int main(){
 	printf("id2: %d\n", erro);
 	if(erro == -11){
 	
-		/*strcpy(inserts[0].tValue, "Corsa");
+		strcpy(inserts[0].tValue, "Corsa");
 		strcpy(inserts[1].tValue, "1.6"); //TUPLA 1 PARA A TABELA CLIENTE ( nome, idade)
 		strcpy(inserts[2].tValue, "2009");
 		strcpy(inserts[3].tValue, "F");
 		
-		erro = insertInto("Carro", inserts);*/
-		
+		erro = insertInto("Carro", inserts);
+		printf("%d",erro);
 		/*strcpy(inserts[0].tValue, "Andrew");
 		strcpy(inserts[1].tValue, "900"); //TUPLA 2 PARA A TABELA CLIENTE ( nome, idade)
 		
