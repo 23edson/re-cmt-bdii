@@ -27,6 +27,25 @@
 #define FILE_DATA_NOT_FOUND -14
 #define OUT_MEMORIA -15
 
+struct Ctabela{
+		int id;
+		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
+		char fnome[CONST];
+		char dir[CONST];
+};
+typedef struct Ctabela criar;
+
+union c_int{
+		int  num;
+		char cnum[sizeof(int)];
+	};//union para o tipo inteiro
+
+	union c_double{
+		double numd;
+		char   cnumd[sizeof(double)];
+	};
+	
+
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount)
 {
 	int i;
@@ -132,11 +151,14 @@ int showBuffer(buffer *bufferPool)
 	printf("\n\n");
 	return 0;
 }
-int counter( int init, FILE *metadados, int total, criar myTable ){
+int counter( int init, FILE *metadados, int total, criar *myTable ){
 	//Essas Função conta o número de atributos de uma tabela
 	int copiar = myTable->id;
 	int AttCount = 0;
-	i = init;
+	int i = init; //printf("aqui : %d, %d, %d", i,copiar,total);
+	
+	fseek( metadados, init , SEEK_SET);
+	
 	while( copiar == myTable->id && i < total){ //Conta os atributos 
 		fread( &copiar, sizeof(int), 1, metadados);//printf("cop: %d  e %ld", copiar, ftell(metadados));
 		fseek( metadados, CONST_META - sizeof(int) , SEEK_CUR);
@@ -146,59 +168,75 @@ int counter( int init, FILE *metadados, int total, criar myTable ){
 	
 	return AttCount;
 }
-int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador)
-{
+void cpyvar(char *tuple,char *vd,int init,int tam){
+		//copiar valores tipo double e int para a string
+		
+		int i=init,j=0;
+		for (;i<tam+init;i++)
+			tuple[i]=vd[j++];
+			
+			
+		
+}
+int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
+	
+	FILE *tabela = fopen("files/fs_tabela.dat","r");
+	if(tabela == NULL) return FILE_NOT_FOUND;
+	
 	
 	//Abertura dos arquivos de dados e de metadados
 	char *name = NULL; //Name representa o nome da tabela
 	if((name=(char*)malloc(50))==NULL){
+		fclose(tabela);
 		return OUT_MEMORIA;
-	};
+	}
 	
 	char *caminho=NULL; 
 	if((caminho=(char*)malloc(50))==NULL){
+		fclose(tabela);
+		free(name);
 		return OUT_MEMORIA;
-	};
+	}
 	
 	criar *biblio=NULL;
 	biblio=(criar*)malloc(sizeof(criar));
-	if(biblio==NULL)
+	if(biblio==NULL){
+		fclose(tabela);
+		free(name);
+		free(caminho);
 		return OUT_MEMORIA;
-	
-	char caractere;
+	}
 	
 	int i = 0, achou=0;
+	int endLoop = 0;
 	
-	FILE *tabela = fopen("files/fs_tabela.dat","r");
-	if(tabela== NULL) return FILE_NOT_FOUND;
+	fseek(tabela,0,SEEK_END); //Coloca o ponteiro do arquivo (tabela) no final.
+	long total = ftell(tabela); //Retorna o posição atual do ponteiro no arquivo.
+	rewind(tabela); //Coloca o ponteiro no início do arquivo.
 	
-	do {
-		fread(&biblio->id,sizeof(int),1,fp);
-		if(feof(tabela)==0){
-			break;
-		}
-		fread(biblio->lnome,sizeof(char),CONST,fp);
-		fread(biblio->fnome,sizeof(char),CONST,fp);
-		fread(biblio->dir,sizeof(char),CONST,fp);
+	for(;endLoop < total; endLoop += CONST_MAX ){
+		fread(&biblio->id, sizeof(int), 1, tabela);
+		fread(biblio->lnome,sizeof(char),CONST,tabela);
+		fread(biblio->fnome,sizeof(char),CONST,tabela);
+		fread(biblio->dir,sizeof(char),CONST,tabela);
 		if((strcmp(biblio->lnome,nomeTabela))==0){	
 			achou=1;
-			i=0;
-			strcat(caminho,biblio->dir);
+			strcpy(caminho,biblio->dir);
 			strcat(caminho,biblio->fnome);
 			break; // sai do loop pois encontrou a tabela
 		}
-		else{ 
-				memset(name,0,strlen(name));
-				i=0;
-		}
-	}while(!feof(fp));
+		
+	}
 	if (achou == 0){ 
 		fclose(tabela);
+		free(name);
+		free(caminho);
+		free(biblio);
 		return TABLE_NOT_FOUND;
 		 // fecha arquivo do dicionario
 	}
-
-	FILE *meta=fopen("files/fs_colunas.dat","r");// abre meta-dados
+	
+	FILE *meta=fopen("files/fs_coluna.dat","r");// abre meta-dados
 	if(meta == NULL) return FILE_META_NOT_FOUND;
 
 	FILE *arquivo = fopen(caminho,"r"); // abre arquivo de dados
@@ -208,62 +246,76 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador)
 	int copiar = 0;
 	
 	fseek(meta,0,SEEK_END);
-	long total = ftell(meta);
-	long pos -1;
-	rewind(meta);
+	total = ftell(meta);
+	long pos = -1;
+	rewind(meta); 
+	
 	 
 	while( copiar != biblio->id && i < total){ //Procura a posicao inicial do metadados
-		fread( &copiar, sizeof(int), 1, metadados);
-		if(copiar == myTable->id){
-			pos = ftell(metadados) - sizeof(int);
+		fread( &copiar, sizeof(int), 1, meta);
+		if(copiar == biblio->id){
+			pos = ftell(meta) - sizeof(int);
 			break;
 		}
 			
 		else
-		fseek( metadados, CONST_META - sizeof(int) , SEEK_CUR);
-		i +=ftell(metadados);
+		fseek( meta, CONST_META - sizeof(int) , SEEK_CUR);
+		i +=ftell(meta);
 		
 	}
+	
 	if( pos == -1)
 		return TABLE_NOT_FOUND; //Table Not Found
 	
 	int fieldCount = counter( pos, meta, total, biblio); //Números de atributos da tabela
-
-	//Lê a quantidade de campos no arquivo de metadados
 	
-	if((fieldList = malloc(sizeof(field) * fieldCount))==NULL){
+	fseek(meta, pos, SEEK_SET); //Seta o ponteiro para o início dos atributos da tabela 
+
+	
+	field *fieldList = NULL;
+	if(( fieldList = malloc(sizeof(field) * fieldCount))==NULL){
 			return OUT_MEMORIA;
 	}; // aloca lista com o numero de campos que tem a tabela
 
 	
 	if(!bufferPool){ //recebe ponteiro null para saber quando deve ser inicializado
 		bufferPool = (buffer **)malloc(sizeof(buffer));
+		if(!bufferPool)
+			return OUT_MEMORIA;
 		initBuffer(*bufferPool, BUFFER_SIZE , fieldList, fieldCount);
 	}
-	else{
-		
 	
+		
+	//int achou = 0;
 	i = 0;
 	int j,breakPoint = 0;
 	int tupleLenght = 0;
-	for(i = 0; i < fieldCount; i++)
-	{
-		for(j = 0;breakPoint == 0; j++)
-		{
-			//Encontra o nome do campo
-			fread(&caractere,sizeof(char),1,arqm);
-			if (caractere != '\0') fieldList[i].fName[j] = caractere;
-			else breakPoint = j;
-		}
-		breakPoint = 0;
-		fread(&fieldList[i].fType,sizeof(char),1,arqm);
-		fread(&fieldList[i].fLenght,sizeof(int),1,arqm);
+	
+	
+    
+	for(i = 0; i < fieldCount; i++){
+		fseek( meta, sizeof(int), SEEK_CUR);
+		fread(&fieldList[i].fName,sizeof(char),TNAME_LENGHT, meta);
+		fread(&fieldList[i].fType,sizeof(char),1,meta);
+		fread(&fieldList[i].fLenght,sizeof(int),1,meta);
 		//Vai montando o tamanho da tupla com base nos tamanhos dos campos encontrados
-		tupleLenght += fieldList[i].fLenght;
+		if(fieldList[i].fType == 'D')
+			tupleLenght += sizeof(double);
+		else if(fieldList[i].fType == 'I') 
+			tupleLenght += sizeof(int);
+			
+		else if(fieldList[i].fType == 'C')
+			tupleLenght += sizeof(char);
+		else
+			tupleLenght += fieldList[i].fLenght;
 	}
-	tupleLenght += fieldCount;//até aqui vamos deixar no arquivo colunas.dat
+	
+	
+	
+	
+	tupleLenght += (fieldCount);//até aqui vamos deixar no arquivo colunas.dat
 	//Cria os campos temporários para a montagem da tupla
-	fclose(arqm);
+	fclose(meta);
 	int *tInt = NULL;
 	if((tInt=malloc(sizeof(int)))==NULL){
 		return OUT_MEMORIA;
@@ -277,10 +329,34 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador)
 	if((tTuple=malloc(sizeof(char)*tupleLenght))==NULL){
 		return OUT_MEMORIA;
 	};
-
+	
+	tTuple[0] = '\0';
+	union c_double vdouble;
+	union c_int vint;
+	
+	
+	/*fseek(arquivo, 0, 1);
+    if(fgetc (arquivo) != EOF){
+        fseek(arquivo, -1, 1);
+        fread(tTuple, sizeof(char), 28, arquivo); //Traz a tupla inteira do arquivo
+    }
+    double *v =	(double *)&tTuple[23];
+    int *n = (int *)&tTuple[23];
+    char ty = tTuple[27];;
+	printf("V: %f e %d, %c ", *v, *n, ty); 
+	printf("%c", tTuple[0]);
+	printf("%c", tTuple[1]);
+	printf("%c", tTuple[2]);
+	printf("%c", tTuple[3]);
+	printf("%c", tTuple[4]);
+	printf("%c", tTuple[5]);
+	printf("%c", tTuple[6]);
+	return 0;*/
+	//int cont = 0;
+	int thePointer = 0;
+	char caracter;
 	//Começa a leitura dos dados.
-	for(strcpy(tTuple,"");;strcpy(tTuple,""))
-	{
+	
 		//Cada tupla lida é inserida no buffer
 		for(i = 0; i < fieldCount; i++)
 		{
@@ -288,44 +364,87 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador)
 			if(fieldList[i].fType == 'I')
 			{
 				//Inteiro
-				fread(tInt,sizeof(int),1,arq);
-				sprintf(tTuple, "%s%d",tTuple,*tInt);
-				if (i != (fieldCount-1)) strcat(tTuple, "*");
-				else if (i == (fieldCount-1)) strcat(tTuple, "#");
+				fread(tInt,sizeof(int),1,arquivo);
+				vint.num = *tInt;
+				cpyvar(tTuple,vint.cnum,thePointer,sizeof(int));
+				thePointer += sizeof(int);
+				if (i != (fieldCount-1))
+					tTuple[thePointer++] = '*';
+					
+				 //se nao acaba a tupla, mas apenas o atributo
+				else if (i == (fieldCount-1)) tTuple[thePointer++] = '#';
+				//se acabo a tupla.
+				
+				//tTuple[thePointer++] = '\0';
+				
+				
 			}
 			else if(fieldList[i].fType == 'D')
 			{
 				//Double
-				fread(tDouble,sizeof(double),1,arq);
-				sprintf(tTuple, "%s%lf",tTuple,*tDouble);
+				fread(tDouble,sizeof(double),1,arquivo); 
+				vdouble.numd = *tDouble; 
+				cpyvar(tTuple,vdouble.cnumd,thePointer,sizeof(double));
+				thePointer += sizeof(double);
+				if (i != (fieldCount-1)) tTuple[thePointer++] = '*'; //se nao acaba a tupla, mas apenas o atributo
+				else if (i == (fieldCount-1)) tTuple[thePointer++] =  '#'; //se acabo a tupla.
+			
+				//tTuple[thePointer++] = '\0';
 			}
 			else if(fieldList[i].fType == 'S')
 			{
+				
 				//String
 				if((tChar = (char *)malloc(sizeof(char) * fieldList[i].fLenght))==NULL){
 					return OUT_MEMORIA;
-				};
-				fread(tChar,sizeof(char),fieldList[i].fLenght,arq);
-				sprintf(tTuple, "%s%s",tTuple,tChar);
-				if (i != (fieldCount-1)) strcat(tTuple, "*");
-				else if (i == (fieldCount-1)) strcat(tTuple, "#");
+				}; 
+				fread(tChar,sizeof(char),fieldList[i].fLenght,arquivo);
+				
+				cpyvar( tTuple, tChar, thePointer, fieldList[i].fLenght);
+				thePointer =+ fieldList[i].fLenght;
+				if (i != (fieldCount-1)) tTuple[thePointer++] = '*'; //se nao acaba a tupla, mas apenas o atributo
+				else if (i == (fieldCount-1)) tTuple[thePointer++] = '#'; //se acabo a tupla.
+				free(tChar);
+				
 			}
 			else if(fieldList[i].fType == 'C')
 			{
 				//Caracter
-				if((tChar = (char *)malloc(sizeof(char)))==NULL){
-					return OUT_MEMORIA;
-				};
-				fread(tChar,sizeof(char),1,arq);
-				sprintf(tTuple, "%s%s",tTuple,tChar);
+				char c;
+				fread(&c,sizeof(char),1,arquivo);
+				//tChar[1] = '\0'; //Trata caracter como string
+				
+					tTuple[thePointer++] = c;
+					
+				if (i != (fieldCount-1)) tTuple[thePointer++] = '*'; //se nao acaba a tupla, mas apenas o atributo
+				else if (i == (fieldCount-1)) tTuple[thePointer++] ='#'; //se acabo a tupla.
+				
+			
 			}
 		}
-		//Se o arquivo de dados chegar ao fim, as tuplas param de ser entregues ao bufferPool
+		/*puts("vvvvvvvvvv");
+		printf("%c", tTuple[0]);
+		printf("%c", tTuple[1]);
+		printf("%c", tTuple[2]);
+		printf("%c", tTuple[3]);
+		printf("%c", tTuple[4]);
+		printf("%c", tTuple[5]);
+		printf("%c", tTuple[15]);
+		double *l = (double *)&tTuple[16];
+		printf("%f", *l);
+		printf("%c", tTuple[24]);
+		int *d = (int *)&tTuple[25];
+		printf("V: %d", *d);
+		printf("%c", tTuple[29]);
+		printf("%c", tTuple[30]);
+		printf("%c", tTuple[31]);
+		fclose(arquivo);fclose(tabela);return 0;*/
+	/*	//Se o arquivo de dados chegar ao fim, as tuplas param de ser entregues ao bufferPool
 		if(feof(arq)) break;
 		i = 0;
 		if(bufferInsert(bufferPool,tTuple,ftell(arq)-tupleLenght,tupleLenght)==OUT_MEMORIA)
 			return OUT_MEMORIA;
-	};
+	
 	//Fecha o arquivo de dados
 	fclose(arq);
 	free(name);
@@ -334,7 +453,7 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador)
 	free(tChar);
 	free(tDouble);
 	free(tTuple);
-	return BUFFER_PREENCHIDO;
-}
+	return BUFFER_PREENCHIDO;*/
+
 }
  
