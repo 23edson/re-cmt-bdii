@@ -123,33 +123,40 @@ int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arqu
 	if(biblio==NULL)
 		return OUT_MEMORIA;
 	char caractere;
-	int i = 0, achou=0;
-	FILE *fp = fopen(arquivo,"r");
-	if(fp == NULL) return ERRO_ARQUIVO;
-	do {
+	int i, a,achou=0;
+	FILE *fp=NULL;
+	
+	if((fp=fopen(arquivo,"r"))== NULL)
+		return ERRO_ARQUIVO;
+	do {		
+		//cuidado loop infinito
 		fread(&biblio->id,sizeof(int),1,fp);
-		if(feof(fp)==0){
-			break;
-		}
 		fread(biblio->lnome,sizeof(char),CONST,fp);
 		fread(biblio->fnome,sizeof(char),CONST,fp);
 		fread(biblio->dir,sizeof(char),CONST,fp);
-		if((strcmp(biblio->lnome,nomeTabela))==0){	
+		for(i=0,a=0;i<CONST;i++){
+			if(biblio->lnome[i]!='\0'){
+				name[a]=biblio->lnome[i];
+				a++;
+			};
+		};
+		if((strcmp(name,nomeTabela))==0){	
 			achou=1;
-			i=0;
-			strcat(caminho,biblio->dir);
+			caminho=biblio->dir;
 			strcat(caminho,biblio->fnome);
 			break; // sai do loop pois encontrou a tabela
 		}
-		else{ 
-				memset(name,0,strlen(name));
-				i=0;
-		}
-	}while(!feof(fp));
+		else{
+			memset(name,0,strlen(name));
+			free(biblio);
+			if(feof(fp)==0)
+				break;
+		};
+		
+	}while(feof(fp)==0);
 	if (achou == 0) return TABELA_NOTFOUND;
 	fclose(fp); // fecha arquivo do dicionario
-	
-	FILE *arqm=fopen("files/fs_colunas.dat","r");// abre meta-dados
+	FILE *arqm=fopen("files/fs_coluna.dat","r");// abre meta-dados
 	if(arqm == NULL) return ERRO_ARQUIVO;
 	
 	FILE *arq = fopen(caminho,"r"); // abre arquivo de dados

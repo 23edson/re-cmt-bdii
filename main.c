@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 		//	| Tabelas disponíveis: fs_personagem, fs_status|
 		//	| nome        | 
 		//	| da tabela   |											   
-			switch (fillBuffer(&bufferPool,fieldList,"cliente","file/fs_tabela.dat")) {
+			switch (fillBuffer(&bufferPool,fieldList,"Carro","files/fs_tabela.dat")) {
 		//	| Arquivo de dicionário passado como parâmetro |
 				case ERRO_ARQUIVO: 
 					printf("\nERRO NA LEITURA DO ARQUIVO OU ARQUIVO INEXISTENTE\n");
