@@ -122,12 +122,8 @@ int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght)
 	if((bPool->bp[bPool->nextPageAvaliable].data = (char *)malloc(tupleLenght*sizeof(char)))==NULL){
 		return OUT_MEMORIA;
 	};
-<<<<<<< HEAD
-	strcpy(bPool->bp[bPool->nextPageAvaliable].data,tuple);
-=======
 	cpyvar(bPool->bp[bPool->nextPageAvaliable].data, tuple, 0, tupleLenght);
 	//strcpy(bPool->bp[bPool->nextPageAvaliable].data,tuple);
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 	bPool->bp[bPool->nextPageAvaliable].pinCount = 0;
 	bPool->bp[bPool->nextPageAvaliable].rewriteBit = 0;
 	bPool->countItems ++;
@@ -213,41 +209,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	
 	//Abertura dos arquivos de dados e de metadados
-<<<<<<< HEAD
-	char *name = NULL;
-	if((name=(char*)malloc(50))==NULL){
-		return OUT_MEMORIA;
-	};
-	char *caminho=NULL; 
-	if((caminho=(char*)malloc(50))==NULL){
-		return OUT_MEMORIA;
-	};
-	criar *biblio=NULL;
-	biblio=(criar*)malloc(sizeof(criar));
-	if(biblio==NULL)
-		return OUT_MEMORIA;
-	char caractere;
-	int i, a,achou=0;
-	FILE *fp=NULL;
-	
-	if((fp=fopen(arquivo,"r"))== NULL)
-		return ERRO_ARQUIVO;
-	do {		
-		//cuidado loop infinito
-		fread(&biblio->id,sizeof(int),1,fp);
-		fread(biblio->lnome,sizeof(char),CONST,fp);
-		fread(biblio->fnome,sizeof(char),CONST,fp);
-		fread(biblio->dir,sizeof(char),CONST,fp);
-		for(i=0,a=0;i<CONST;i++){
-			if(biblio->lnome[i]!='\0'){
-				name[a]=biblio->lnome[i];
-				a++;
-			};
-		};
-		if((strcmp(name,nomeTabela))==0){	
-			achou=1;
-			caminho=biblio->dir;
-=======
 	char *name = NULL; //Name representa o nome da tabela
 	if((name=(char*)malloc(50))==NULL){
 		fclose(tabela);
@@ -285,52 +246,10 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		if((strcmp(biblio->lnome,nomeTabela))==0){	
 			achou=1;
 			strcpy(caminho,biblio->dir);
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 			strcat(caminho,biblio->fnome);
 			break; // sai do loop pois encontrou a tabela
 		}
-		else{
-			memset(name,0,strlen(name));
-			free(biblio);
-			if(feof(fp)==0)
-				break;
-		};
 		
-<<<<<<< HEAD
-	}while(feof(fp)==0);
-	if (achou == 0) return TABELA_NOTFOUND;
-	fclose(fp); // fecha arquivo do dicionario
-	FILE *arqm=fopen("files/fs_coluna.dat","r");// abre meta-dados
-	if(arqm == NULL) return ERRO_ARQUIVO;
-	
-	FILE *arq = fopen(caminho,"r"); // abre arquivo de dados
-	if(arq == NULL) return ERRO_ARQUIVO;
-	
-	int fieldCount = 0;
-	
-	//Lê a quantidade de campos no arquivo de metadados
-	fread(&fieldCount,sizeof(int),1,arqm); // fieldcount -> numero de campos da tabela
-	if((fieldList = malloc(sizeof(field) * fieldCount))==NULL){
-			return OUT_MEMORIA;
-	}; // aloca lista com o numero de campos que tem a tabela
-	
-	initBuffer(bufferPool,BUFFER_SIZE,fieldList,fieldCount);
-	i = 0;
-	int j,breakPoint = 0;
-	int tupleLenght = 0;
-	for(i = 0; i < fieldCount; i++)
-	{
-		for(j = 0;breakPoint == 0; j++)
-		{
-			//Encontra o nome do campo
-			fread(&caractere,sizeof(char),1,arqm);
-			if (caractere != '\0') fieldList[i].fName[j] = caractere;
-			else breakPoint = j;
-		}
-		breakPoint = 0;
-		fread(&fieldList[i].fType,sizeof(char),1,arqm);
-		fread(&fieldList[i].fLenght,sizeof(int),1,arqm);
-=======
 	}
 	if (achou == 0){ 
 		fclose(tabela);
@@ -403,7 +322,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		fread(&fieldList[i].fName,sizeof(char),TNAME_LENGHT, meta);
 		fread(&fieldList[i].fType,sizeof(char),1,meta);
 		fread(&fieldList[i].fLenght,sizeof(int),1,meta);
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 		//Vai montando o tamanho da tupla com base nos tamanhos dos campos encontrados
 		if(fieldList[i].fType == 'D')
 			tupleLenght += sizeof(double);
@@ -415,11 +333,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		else
 			tupleLenght += fieldList[i].fLenght;
 	}
-<<<<<<< HEAD
-	tupleLenght += fieldCount;//até aqui vamos deixar no arquivo colunas.dat
-	//Cria os campos temporários para a montagem da tupla
-	fclose(arqm);
-=======
 	
 	
 	
@@ -427,7 +340,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	tupleLenght += (fieldCount);//até aqui vamos deixar no arquivo colunas.dat
 	//Cria os campos temporários para a montagem da tupla
 	fclose(meta);
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 	int *tInt = NULL;
 	if((tInt=malloc(sizeof(int)))==NULL){
 		return OUT_MEMORIA;
@@ -441,9 +353,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	if((tTuple=malloc(sizeof(char)*tupleLenght))==NULL){
 		return OUT_MEMORIA;
 	};
-<<<<<<< HEAD
-	 
-=======
 	
 	tTuple[0] = '\0';
 	union c_double vdouble;
@@ -471,7 +380,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	int thePointer = 0;
 	char caracter;
 	fseek(arquivo, contador, SEEK_CUR);return 0;
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 	//Começa a leitura dos dados.
 	
 		//Cada tupla lida é inserida no buffer
@@ -514,13 +422,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 				//String
 				if((tChar = (char *)malloc(sizeof(char) * fieldList[i].fLenght))==NULL){
 					return OUT_MEMORIA;
-<<<<<<< HEAD
-				};
-				fread(tChar,sizeof(char),fieldList[i].fLenght,arq);
-				sprintf(tTuple, "%s%s",tTuple,tChar);
-				if (i != (fieldCount-1)) strcat(tTuple, "*");
-				else if (i == (fieldCount-1)) strcat(tTuple, "#");
-=======
 				}; 
 				fread(tChar,sizeof(char),fieldList[i].fLenght,arquivo);
 				
@@ -530,18 +431,10 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 				else if (i == (fieldCount-1)) tTuple[thePointer++] = '#'; //se acabo a tupla.
 				free(tChar);
 				
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 			}
 			else if(fieldList[i].fType == 'C')
 			{
 				//Caracter
-<<<<<<< HEAD
-				if((tChar = (char *)malloc(sizeof(char)))==NULL){
-					return OUT_MEMORIA;
-				};
-				fread(tChar,sizeof(char),1,arq);
-				sprintf(tTuple, "%s%s",tTuple,tChar);
-=======
 				char c;
 				fread(&c,sizeof(char),1,arquivo);
 				//tChar[1] = '\0'; //Trata caracter como string
@@ -552,7 +445,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 				else if (i == (fieldCount-1)) tTuple[thePointer++] ='#'; //se acabo a tupla.
 				
 			
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 			}
 		}
 		/*puts("vvvvvvvvvv");
@@ -574,18 +466,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		fclose(arquivo);fclose(tabela);return 0;*/
 	/*	//Se o arquivo de dados chegar ao fim, as tuplas param de ser entregues ao bufferPool
 		if(feof(arq)) break;
-<<<<<<< HEAD
-		i = 0;
-		if(bufferInsert(bufferPool,tTuple,ftell(arq)-tupleLenght,tupleLenght)==OUT_MEMORIA)
-			return OUT_MEMORIA;
-	};
-	//Fecha o arquivo de dados
-	fclose(arq);
-	free(name);
-	free(caminho);
-	free(tInt);
-	free(tChar);
-=======
 		i = 0;*/
 		if(bufferInsert(*bufferPool,tTuple,ftell(arquivo)-tupleLenght,tupleLenght)==OUT_MEMORIA)
 			return OUT_MEMORIA;
@@ -596,7 +476,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	free(caminho);
 	free(tInt);
 	//free(tChar);
->>>>>>> 5bcf99ca9ea795ed58db5981362d1ae83a0e9d8c
 	free(tDouble);
 	free(tTuple);
 	return BUFFER_PREENCHIDO;
