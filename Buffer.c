@@ -26,6 +26,7 @@
 #define FILE_META_NOT_FOUND -13
 #define FILE_DATA_NOT_FOUND -14
 #define OUT_MEMORIA -15
+#define TUPLE_NOT_FOUND -16
 
 struct Ctabela{
 		int id;
@@ -73,6 +74,16 @@ void findNextAvaliable(buffer *bPool)
 
 	}
 }
+void cpyvar(char *tuple,char *vd,int init,int tam){
+		//copiar valores tipo double e int para a string
+		
+		int i=init,j=0;
+		for (;i<tam+init;i++)
+			tuple[i]=vd[j++];
+			
+			
+		
+}
 void applyReplacementPolicies(buffer *bPool)
 {
 	//Aqui é escolhido a página do buffer que tem o menor pinCount para ser substituida
@@ -111,7 +122,8 @@ int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght)
 	if((bPool->bp[bPool->nextPageAvaliable].data = (char *)malloc(tupleLenght*sizeof(char)))==NULL){
 		return OUT_MEMORIA;
 	};
-	strcpy(bPool->bp[bPool->nextPageAvaliable].data,tuple);
+	cpyvar(bPool->bp[bPool->nextPageAvaliable].data, tuple, 0, tupleLenght);
+	//strcpy(bPool->bp[bPool->nextPageAvaliable].data,tuple);
 	bPool->bp[bPool->nextPageAvaliable].pinCount = 0;
 	bPool->bp[bPool->nextPageAvaliable].rewriteBit = 0;
 	bPool->countItems ++;
@@ -168,16 +180,28 @@ int counter( int init, FILE *metadados, int total, criar *myTable ){
 	
 	return AttCount;
 }
-void cpyvar(char *tuple,char *vd,int init,int tam){
-		//copiar valores tipo double e int para a string
-		
-		int i=init,j=0;
-		for (;i<tam+init;i++)
-			tuple[i]=vd[j++];
-			
-			
-		
+
+int getTupleNumber(FILE *arquivo, int position, int tamTuple){
+	
+	int analise = 0;
+	int endLoop = 0;
+	fseek(arquivo, 0, SEEK_END);
+	long tam = ftell(arquivo);
+	rewind(arquivo);
+	
+	while(endLoop < tam){
+		fseek(arquivo, tamTuple, SEEK_CUR);
+		analise ++;
+		if(position == analise){
+			fseek(arquivo, -tamTuple, SEEK_CUR);
+			return ftell(arquivo);
+		}
+		endLoop += tamTuple;
+	}
+	return TUPLE_NOT_FOUND;
+	
 }
+
 int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	FILE *tabela = fopen("files/fs_tabela.dat","r");
@@ -312,7 +336,7 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	
 	
-	
+	contador = getTupleNumber(arquivo,contador,tupleLenght);
 	tupleLenght += (fieldCount);//até aqui vamos deixar no arquivo colunas.dat
 	//Cria os campos temporários para a montagem da tupla
 	fclose(meta);
@@ -355,6 +379,7 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	//int cont = 0;
 	int thePointer = 0;
 	char caracter;
+	fseek(arquivo, contador, SEEK_CUR);return 0;
 	//Começa a leitura dos dados.
 	
 		//Cada tupla lida é inserida no buffer
@@ -441,19 +466,19 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		fclose(arquivo);fclose(tabela);return 0;*/
 	/*	//Se o arquivo de dados chegar ao fim, as tuplas param de ser entregues ao bufferPool
 		if(feof(arq)) break;
-		i = 0;
-		if(bufferInsert(bufferPool,tTuple,ftell(arq)-tupleLenght,tupleLenght)==OUT_MEMORIA)
+		i = 0;*/
+		if(bufferInsert(*bufferPool,tTuple,ftell(arquivo)-tupleLenght,tupleLenght)==OUT_MEMORIA)
 			return OUT_MEMORIA;
 	
 	//Fecha o arquivo de dados
-	fclose(arq);
+	fclose(arquivo);
 	free(name);
 	free(caminho);
 	free(tInt);
-	free(tChar);
+	//free(tChar);
 	free(tDouble);
 	free(tTuple);
-	return BUFFER_PREENCHIDO;*/
+	return BUFFER_PREENCHIDO;
 
 }
  
