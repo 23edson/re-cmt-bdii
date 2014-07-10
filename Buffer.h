@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #define TNAME_LENGHT 20
 #define BUFFER_SIZE 16
 #define BUFFER_PREENCHIDO 0
@@ -32,6 +33,18 @@ typedef struct buffer
 	bufferPage bp[BUFFER_SIZE];
 }buffer;
 
+/*typedef struct tupla{
+	char tipo;
+	char *String;
+	int *Dint;
+	double *Ddouble;
+}myRow;*/
+
+
+
+
+
+
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
 
@@ -42,10 +55,12 @@ void findNextAvaliable(buffer *bPool);
 void applyReplacementPolicies(buffer *bPool);
 
 //Insere um novo elemento no buffer
-void bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
+int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght);
 
 //Função que vai ler os arquivos de dados e metadados
-int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arquivo);
+int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
 
 //Função que mostrará o conteúdo do Buffer Pool na tela
 int showBuffer(buffer *bufferPool);
+
+int extractTupleFromBP(buffer *bufferPool, int tupleNumber);
