@@ -91,7 +91,6 @@ int extractTupleFromBP(buffer *bufferPool ,int tupleNumber){
 	//printf("Bu; %d,%d,%d,%d", bufferPool->nextPageAvaliable,bufferPool->countItems,bufferPool->fieldCount, bufferPool->bp[0].diskSeek);;
 	myTuple = (Element_t *)malloc(sizeof(Element_t) * bufferPool->fieldCount);
 	if(!myTuple){
-		puts("sd");
 		return OUT_MEMORIA;
 	}
 	
@@ -216,9 +215,9 @@ int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
 int showBuffer(buffer *bufferPool,int page)
 {
 	if (!bufferPool) return BUFFER_VAZIO;
+	if(page>=BUFFER_SIZE) return INVALID_PAGE;
 	if(!bufferPool->countItems) return BUFFER_VAZIO;
 	//Primeiro é mostrado os campos
-	if(page>=BUFFER_SIZE) return INVALID_PAGE;
 	int i, j=0;
 	printf("\n");
 	for(i = 0; i < bufferPool->fieldCount; i ++)
@@ -418,10 +417,12 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 	if(!bufferPool){ //recebe ponteiro null para saber quando deve ser inicializado
 		bufferPool = (buffer *)malloc(sizeof(buffer));
 		if(!bufferPool){
-			 
+			fclose(meta);
+			fclose(arquivo); 
 			free(name);
 			free(caminho);
 			free(biblio);
+			free(fieldList);
 			return OUT_MEMORIA;
 		}
 		initBuffer(bufferPool, BUFFER_SIZE , fieldList, fieldCount);

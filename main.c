@@ -39,11 +39,17 @@ int main(int argc, char *argv[])
 				printf("\nPAGINA NAO EXISTE\n");
 				break;
 			}
+			
+		}
+		else if(choose == 3){
+			extractTupleFromBP(bufferPool,i);
 		};
-		extractTupleFromBP(bufferPool,i);
 	};
-	free(bufferPool->fieldList);
-	free(bufferPool);
+	
+	if(bufferPool){
+		free(bufferPool->fieldList);
+		free(bufferPool);
+	}
 	return 0;
 
 }
