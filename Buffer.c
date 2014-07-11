@@ -90,8 +90,10 @@ int extractTupleFromBP(buffer *bufferPool ,int tupleNumber){
 	tupleNumber--;
 	//printf("Bu; %d,%d,%d,%d", bufferPool->nextPageAvaliable,bufferPool->countItems,bufferPool->fieldCount, bufferPool->bp[0].diskSeek);;
 	myTuple = (Element_t *)malloc(sizeof(Element_t) * bufferPool->fieldCount);
-	if(!myTuple)
+	if(!myTuple){
 		puts("sd");
+		return OUT_MEMORIA;
+	}
 	
 	for(i = 0; i < bufferPool->fieldCount; i ++)
 	{
@@ -146,7 +148,7 @@ int extractTupleFromBP(buffer *bufferPool ,int tupleNumber){
 		printf("%c", bufferPool->bp[0].data[30]);
 		printf("%c", bufferPool->bp[0].data[31]);
 	*/
-	
+	return 0;
 }
 void findNextAvaliable(buffer *bPool){
 	int i;
@@ -516,7 +518,7 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 	int thePointer = 0;
 //	char caracter;
 	fseek(arquivo, contador, SEEK_CUR);return 0;
-	char caracter;printf("inicio:%d", contador);
+	//char caracter;printf("inicio:%d", contador);
 	
 	fseek(arquivo, contador, SEEK_SET);
 	//Começa a leitura dos dados.
