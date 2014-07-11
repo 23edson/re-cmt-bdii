@@ -84,9 +84,9 @@ int extractTupleFromBP(buffer *bufferPool ,int tupleNumber){
 	Element_t *myTuple = NULL;
 	int sum = 0;
 	
-	if(tupleNumber < 1 || tupleNumber > bufferPool->countItems)
+	if(tupleNumber < 1 || tupleNumber > bufferPool->countItems){
 		return TUPLE_NOT_FOUND;
-	
+	};
 	tupleNumber--;
 	//printf("Bu; %d,%d,%d,%d", bufferPool->nextPageAvaliable,bufferPool->countItems,bufferPool->fieldCount, bufferPool->bp[0].diskSeek);;
 	myTuple = (Element_t *)malloc(sizeof(Element_t) * bufferPool->fieldCount);
