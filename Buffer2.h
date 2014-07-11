@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "erro.h"
-#include <stdbool.h>
 #define TNAME_LENGHT 20
 #define BUFFER_SIZE 16
 typedef struct field{
@@ -28,14 +27,6 @@ typedef struct buffer
 	int fieldCount;
 	bufferPage bp[BUFFER_SIZE];
 }buffer;
-
-/*typedef struct tupla{
-	char tipo;
-	char *String;
-	int *Dint;
-	double *Ddouble;
-}myRow;*/
-
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
 
@@ -46,7 +37,6 @@ void findNextAvaliable(buffer *bPool);
 void applyReplacementPolicies(buffer *bPool);
 
 //Insere um novo elemento no buffer
-
 int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
 
 //Função que vai ler os arquivos de dados e metadados
@@ -56,5 +46,3 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador);
 int showBuffer(buffer *bufferPool,int page);
 
 int getTupleNumber(FILE *arquivo, int position, int tamTuple);
-
-int extractTupleFromBP(buffer *bufferPool, int tupleNumber);
