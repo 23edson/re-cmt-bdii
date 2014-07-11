@@ -6,9 +6,6 @@
 #include "erro.h"
 #define TNAME_LENGHT 20
 #define BUFFER_SIZE 16
-#define CONST 30
-#define BASE 10
-#define CONST_MAX 94
 typedef struct field{
     char fName[TNAME_LENGHT];
     char fType;
@@ -30,12 +27,6 @@ typedef struct buffer
 	int fieldCount;
 	bufferPage bp[BUFFER_SIZE];
 }buffer;
-typedef struct Ctabela{
-		int id;
-		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
-		char fnome[CONST];
-		char dir[CONST];
-	}criar;
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
 
@@ -49,7 +40,9 @@ void applyReplacementPolicies(buffer *bPool);
 int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
 
 //Função que vai ler os arquivos de dados e metadados
-int fillBuffer(buffer *bufferPool, field *fieldList,char *nomeTabela, char *arquivo);
+int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador);
 
 //Função que mostrará o conteúdo do Buffer Pool na tela
-int showBuffer(buffer *bufferPool);
+int showBuffer(buffer *bufferPool,int page);
+
+int getTupleNumber(FILE *arquivo, int position, int tamTuple);
