@@ -212,9 +212,6 @@ int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
 	return 0;
 };
 int showBuffer(buffer *bufferPool,int page)
-=======
-}
-int showBuffer(buffer *bufferPool)
 {
 	if (!bufferPool) return BUFFER_VAZIO;
 	if(!bufferPool->countItems) return BUFFER_VAZIO;
@@ -426,18 +423,7 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 			return OUT_MEMORIA;
 		}
 		initBuffer(bufferPool, BUFFER_SIZE , fieldList, fieldCount);
-	if(!*bufferPool){ //recebe ponteiro null para saber quando deve ser inicializado
-		puts("entrei");
-		
-		*bufferPool = (buffer *)malloc(sizeof(buffer));
-		
-		if(!*bufferPool)
-			return OUT_MEMORIA;
-		
-		initBuffer(*bufferPool, BUFFER_SIZE , fieldList, fieldCount);
-	}
-	
-		
+	}	
 	//int achou = 0;
 	i = 0;
 	//int j,breakPoint = 0;
@@ -620,7 +606,6 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 		//printf("%c", tTuple[24]);
 		int *d = (int *)&tTuple[23];
 		printf("V: %d", *d);
-<<<<<<< HEAD
 		printf("%c", tTuple[29]);
 		printf("%c", tTuple[30]);
 		printf("%c", tTuple[31]);
@@ -638,16 +623,6 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 			//free(tChar);
 			free(tDouble);
 			free(tTuple);
-		//printf("%c", tTuple[29]);
-		printf("%c\n\n\n", tTuple[27]);
-		//printf("%c", tTuple[31]);
-		
-		fclose(arquivo);fclose(tabela);return 0;
-	/*	//Se o arquivo de dados chegar ao fim, as tuplas param de ser entregues ao bufferPool
-		if(feof(arq)) break;
-		i = 0;*/
-		puts("there");
-		if(bufferInsert(*bufferPool,tTuple,0,tupleLenght)==OUT_MEMORIA)
 			return OUT_MEMORIA;
 		}
 	//Fecha o arquivo de dados
