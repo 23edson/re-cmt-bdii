@@ -55,18 +55,26 @@ void findNextAvaliable(buffer *bPool);
 void applyReplacementPolicies(buffer *bPool);
 
 //Insere um novo elemento no buffer
-
 int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
 
 //Função que vai ler os arquivos de dados e metadados
 int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
 
 //Função que mostrará o conteúdo do Buffer Pool na tela
-int showBuffer(buffer *bufferPool,int page);
+//int showBuffer(buffer *bufferPool,int page); função grupo anterior
 
+// retorna posição da tupla que está procurando no arquivo, ou TUPLE_NOT_FOUND
 int getTupleNumber(FILE *arquivo, int position, int tamTuple);
 
+//Função que retorna uma estrutura para o usuario imprimir os dados
 Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
 
+//função para criar uma tabela com (nome da tabela, atributos ver 'struct field' acima, numero de atributos)
+//em caso da tabela ja ter sido criada retorna OKAY 
+//outros retornos OUT_MEMORIA / VALOR_INVALIDO / ABORT / FILE_NOT_FOUND
 int createTable( char *TableName, field *Attributes, int numberAtt);
+
+//função para inserir uma tupla no arquivo de dados (nome da tabela, atributos ver 'struct Element_t' acima)
+//em caso da tabela ja ter sido criada retorna OKAY / OUT_MEMORIA / TABLE_NOT_FOUND / ABORT / FILE_NOT_FOUND
+// VIOLATE_NUMBER_LENGTH
 int insertInto( char *tableName, Element_t *Attributes);

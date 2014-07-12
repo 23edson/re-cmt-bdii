@@ -176,7 +176,7 @@ int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
 	findNextAvaliable(bPool);
 	return 0;
 }
-int showBuffer(buffer *bufferPool,int page){
+/*int showBuffer(buffer *bufferPool,int page){
 	if (!bufferPool->countItems) return EMPTY_BUFFER;
 	//Primeiro é mostrado os campos
 	int i, j=0;
@@ -204,7 +204,8 @@ int showBuffer(buffer *bufferPool,int page){
 	}
 	printf("\n\n");
 	return 0;
-}
+*função grupo anterior para mostrar os dados na tela
+}*/
 int counter( int init, FILE *metadados, int total, criar *myTable ){
 	//Essas Função conta o número de atributos de uma tabela
 	int copiar = myTable->id;
@@ -854,7 +855,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	
 	criar *ConstTab = malloc(sizeof(criar));
 	if(!ConstTab){
-		return 0;
+		return OUT_MEMORIA;
 	}
 	ConstTab->id = 0;
 	strcpy(ConstTab->fnome,"file_0\0");
@@ -877,7 +878,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 
 	char *getFromReturn = GeneratePhysName(ConstTab->fnome);
 	if(!getFromReturn)
-		return 0;
+		return VALOR_INVALIDO;
 		
 	strcpy( ConstTab->fnome, getFromReturn);//puts(ConstTab->fnome);
 	
@@ -930,7 +931,8 @@ int insertInto( char *tableName, Element_t *Attributes){
 	char *diretorio = NULL;
 	criar *myTable = NULL;
 	myTable = (criar *)malloc(sizeof(criar));
-	
+	if(!mytable)
+		return OUT_MEMORIA;
 	
 	int getErro = searchTable(table, tableName, &myTable);
 	
