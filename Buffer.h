@@ -1,17 +1,14 @@
 //Este trabalho utiliza a licença GNU General Public License.
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
+#include <string.h>
+#include "erro.h"
+
 #define TNAME_LENGHT 20
 #define BUFFER_SIZE 16
-#define BUFFER_PREENCHIDO 0
-#define ERRO_ARQUIVO 1
-#define TABELA_NOTFOUND 2
-#define BUFFER_VAZIO 3
 
-typedef struct field
-{
+typedef struct field{
     char fName[TNAME_LENGHT];
     char fType;
     int fLenght;
@@ -39,11 +36,14 @@ typedef struct buffer
 	int *Dint;
 	double *Ddouble;
 }myRow;*/
-
-
-
-
-
+typedef struct Elemento {
+  enum ElementType { String, Nint, Ndouble,Caracter }type;
+  union {
+    char      *Str;
+    int       *Dint;
+    double    *Ddouble;
+  };
+}Element_t;
 
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
@@ -55,12 +55,18 @@ void findNextAvaliable(buffer *bPool);
 void applyReplacementPolicies(buffer *bPool);
 
 //Insere um novo elemento no buffer
-int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght);
+
+int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
 
 //Função que vai ler os arquivos de dados e metadados
 int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
 
 //Função que mostrará o conteúdo do Buffer Pool na tela
-int showBuffer(buffer *bufferPool);
+int showBuffer(buffer *bufferPool,int page);
 
-int extractTupleFromBP(buffer *bufferPool, int tupleNumber);
+int getTupleNumber(FILE *arquivo, int position, int tamTuple);
+
+Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
+
+int createTable( char *TableName, field *Attributes, int numberAtt);
+int insertInto( char *tableName, Element_t *Attributes);
