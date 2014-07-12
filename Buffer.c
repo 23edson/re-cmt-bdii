@@ -27,15 +27,7 @@
 #define FILE_DATA_NOT_FOUND -14
 #define TUPLE_NOT_FOUND -16
 
-enum ElementType { String, Nint, Ndouble,Caracter };
-typedef struct Element {
-  enum ElementType type;
-  union {
-    char      *Str;
-    int       *Dint;
-    double    *Ddouble;
-  };
-}Element_t;
+
 
 
 
@@ -454,6 +446,7 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 	
 	//printf("%d",tupleLenght);
 	contador = getTupleNumber(arquivo,contador,tupleLenght);
+	
 	if(contador == TUPLE_NOT_FOUND)
 		return contador;
 	//até aqui vamos deixar no arquivo colunas.dat
@@ -517,7 +510,6 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 	return 0;*/
 	//int cont = 0;
 	int thePointer = 0;
-//	char caracter;
 	fseek(arquivo, contador, SEEK_CUR);return 0;
 	//char caracter;printf("inicio:%d", contador);
 	
@@ -594,6 +586,7 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 			
 			}
 		}
+		
 		/*puts("vvvvvvvvvv");
 		 * 
 		*/
@@ -622,10 +615,7 @@ int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador){
 			free(name);
 			free(caminho);
 			free(biblio);
-			free(tInt);
 			//free(tChar);
-			free(tDouble);
-			free(tTuple);
 			return OUT_MEMORIA;
 		}
 	//Fecha o arquivo de dados

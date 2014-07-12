@@ -35,6 +35,14 @@ typedef struct buffer
 	int *Dint;
 	double *Ddouble;
 }myRow;*/
+typedef struct Elemento {
+  enum ElementType { String, Nint, Ndouble,Caracter }type;
+  union {
+    char      *Str;
+    int       *Dint;
+    double    *Ddouble;
+  };
+}Element_t;
 
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
