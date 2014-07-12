@@ -378,8 +378,16 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		
 		*bufferPool = (buffer *)malloc(sizeof(buffer));
 		
-		if(!(*bufferPool))
+		if(!(*bufferPool)){
+			fclose(tabela);
+			fclose(meta);
+			fclose(arquivo);
+			free(name);
+			free(caminho);
+			free(biblio);
+			free(fieldList);
 			return OUT_MEMORIA;
+		}
 		
 		initBuffer(*bufferPool, BUFFER_SIZE , fieldList, fieldCount);
 	}
@@ -544,9 +552,16 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		if(feof(arq)) break;
 		i = 0;*/
 		//puts("there");
-		if(bufferInsert(*bufferPool,tTuple,0,tupleLenght)==OUT_MEMORIA)
+		if(bufferInsert(*bufferPool,tTuple,0,tupleLenght)==OUT_MEMORIA){
+			fclose(arquivo);
+			free(name);
+			free(caminho);
+			free(tInt);
+			//free(tChar);
+			free(tDouble);
+			free(tTuple);
 			return OUT_MEMORIA;
-	
+		}
 	//Fecha o arquivo de dados
 	fclose(arquivo);
 	free(name);
