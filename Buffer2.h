@@ -4,10 +4,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include "erro.h"
-
+#include <stdbool.h>
 #define TNAME_LENGHT 20
 #define BUFFER_SIZE 16
-
 typedef struct field{
     char fName[TNAME_LENGHT];
     char fType;
@@ -59,14 +58,11 @@ void applyReplacementPolicies(buffer *bPool);
 int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
 
 //Função que vai ler os arquivos de dados e metadados
-int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
+int fillBuffer(buffer *bufferPool, char *nomeTabela, int contador);
 
 //Função que mostrará o conteúdo do Buffer Pool na tela
 int showBuffer(buffer *bufferPool,int page);
 
 int getTupleNumber(FILE *arquivo, int position, int tamTuple);
 
-Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
-
-int createTable( char *TableName, field *Attributes, int numberAtt);
-int insertInto( char *tableName, Element_t *Attributes);
+int extractTupleFromBP(buffer *bufferPool, int tupleNumber);

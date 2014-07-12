@@ -1,6 +1,21 @@
-#define ERRO_ARQUIVO 1
-#define TABELA_NOTFOUND 2
-#define BUFFER_VAZIO 3
-#define BUFFER_PREENCHIDO 4
-#define OUT_MEMORIA 5
-#define INVALID_PAGE 10
+
+
+#define OKAY -1 
+#define FILE_NOT_FOUND -2
+#define VALUE_ALREADY_EXISTS -3
+#define VALOR_INVALIDO -4
+#define ERRO_ATT_NUMBER -5
+#define VIOLATE_NUMBER_LENGTH -6
+#define TABLE_ALREADY_EXISTS -7
+#define TABLE_NOT_FOUND -8
+#define FILE_META_NOT_FOUND -9
+#define FILE_DATA_NOT_FOUND -10
+#define OUT_MEMORIA -11
+#define TUPLE_NOT_FOUND -12
+#define EMPTY_BUFFER -13
+#define ABORT -14
+
+
+
+
+

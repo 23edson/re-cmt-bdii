@@ -1,14 +1,32 @@
 #include "Buffer.h"
-int createDic(char *a1){//dicionario a partir do dicionario do grupo anterior
-		FILE *fpd=NULL;
-	if((fpd=fopen("dicionario.dat","r"))==NULL)
+int searchId(FILE *fp,int total){
+	
+	
+}
+int createDic(char *a1,field *Add){//dicionario a partir do dicionario do grupo anterior
+	FILE *fpd=NULL;
+	if((fpd=fopen("files/fs_tabela.dat","r+"))==NULL)
 		return ERRO_ARQUIVO;
 	FILE *fp=NULL;
-	if((fp=fopen("dictionary.dat","w"))==NULL)
+	if((fp=fopen("files/fs_coluna.dat","r+"))==NULL)
+	{
+		fclose(fpd);
 		return ERRO_ARQUIVO;
+	}
 	char* a2 =NULL;
 	a2=(char*)malloc(sizeof(char)*50);
-	fwrite(a1,sizeof(char),12,fp);
+	if(!a2){
+		fclose(fpd);
+		fclose(fp);
+		return ERRO_ARQUIVO;
+	};
+	int i=0,total=0;
+	fseek(fdp,0,SEEK_END);
+	total=ftell(fpd);
+	rewind(fpd);
+	i=searchId(fpd,total);
+	
+	fwrite(a1,sizeof(char),TNAME_LENGHT,fp);
 	
 	int i=0;
 	for(;i<50&&feof(fpd)==0;i++){
