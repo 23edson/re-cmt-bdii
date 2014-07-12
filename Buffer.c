@@ -308,11 +308,22 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	}
 	
 	FILE *meta=fopen("files/fs_coluna.dat","r");// abre meta-dados
-	if(meta == NULL) return FILE_META_NOT_FOUND;
-
+	if(meta == NULL){ 
+		fclose(tabela);
+		free(name);
+		free(caminho);
+		free(biblio);
+		return FILE_META_NOT_FOUND;
+	}
 	FILE *arquivo = fopen(caminho,"r"); // abre arquivo de dados
-	if(arquivo == NULL) return FILE_DATA_NOT_FOUND;
-
+	if(arquivo == NULL){ 
+		fclose(tabela);
+		fclose(meta);
+		free(name);
+		free(caminho);
+		free(biblio);
+		return FILE_DATA_NOT_FOUND;
+	}
 	
 	int copiar = 0;
 	
@@ -336,9 +347,15 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		}
 	}
 	
-	if( pos == -1)
+	if( pos == -1){
+		fclose(tabela);
+		fclose(meta);
+		fclose(arquivo);
+		free(name);
+		free(caminho);
+		free(biblio);
 		return TABLE_NOT_FOUND; //Table Not Found
-	//printf("posss : %ld", pos); 
+	}//printf("posss : %ld", pos); 
 	int fieldCount = counter( pos, meta, total, biblio); //Números de atributos da tabela
 	
 	fseek(meta, pos, SEEK_SET); //Seta o ponteiro para o início dos atributos da tabela 
@@ -346,16 +363,22 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	field *fieldList = NULL;
 	if(( fieldList = malloc(sizeof(field) * fieldCount))==NULL){
+			fclose(tabela);
+			fclose(meta);
+			fclose(arquivo);
+			free(name);
+			free(caminho);
+			free(biblio);
 			return OUT_MEMORIA;
 	}; // aloca lista com o numero de campos que tem a tabela
 
 	
-	if(!*bufferPool){ //recebe ponteiro null para saber quando deve ser inicializado
+	if(!(*bufferPool)){ //recebe ponteiro null para saber quando deve ser inicializado
 		//puts("entrei");
 		
 		*bufferPool = (buffer *)malloc(sizeof(buffer));
 		
-		if(!*bufferPool)
+		if(!(*bufferPool))
 			return OUT_MEMORIA;
 		
 		initBuffer(*bufferPool, BUFFER_SIZE , fieldList, fieldCount);

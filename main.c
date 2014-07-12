@@ -130,7 +130,7 @@ int main(){
 	printf(" %c ", v3);*/
 	
 	//if(showBuffer(bufferPool));
-		
+	puts("\n");
 	return 0;
 
 }
