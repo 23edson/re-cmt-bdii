@@ -582,7 +582,7 @@ int searchTable(FILE *arquivo, char *Tabela, criar **myTable){
 	int contador = 0;
 	criar *table = (criar *)malloc(sizeof(criar));
 	if(!table)
-		return 0;
+		return OUT_MEMORIA;
 	
 	fseek( arquivo, 0, SEEK_END);
 	int total = ftell(arquivo);

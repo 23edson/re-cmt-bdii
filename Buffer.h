@@ -43,7 +43,7 @@ typedef struct Elemento {
     int       *Dint;
     double    *Ddouble;
   };
-}Element_t;
+}Element_t;//estrutura usada pelo usuario para imprimir as tuplas
 
 //Inicializa o buffer
 void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount);
