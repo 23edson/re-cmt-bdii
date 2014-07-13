@@ -135,19 +135,19 @@ void findNextAvaliable(buffer *bPool){
 
 void applyReplacementPolicies(buffer *bPool){
 	//Aqui é escolhido a página do buffer que tem o menor pinCount para ser substituida
-	int i, lower = bPool->bp[0].pinCount;
+	int i, j=0,lower = bPool->bp[0].pinCount;
 	bufferPage bPage = bPool->bp[0];
 	for(i = 0; i < BUFFER_SIZE; i++){
 		if(bPool->bp[i].pinCount < lower){
 			bPage = bPool->bp[i];
 			lower = bPool->bp[i].pinCount;
+			j=i;
 		}
 	}
 	//A página encontrada fica armazenada em bPage
-	bPage.rewriteBit = 1;
 	if(bPage.rewriteBit == 0){
-		bPool->bp[i].diskSeek = -1;
-		bPool->nextPageAvaliable = i;
+		bPool->bp[j].diskSeek = -1;
+		bPool->nextPageAvaliable = j;
 	}
 	else{
 		//Aqui deve ser colocado o código para regravação do arquivo.
@@ -1121,11 +1121,12 @@ int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positi
 			copiar++;
 		}
 		if(Set < totali ){
-			totali=Set*positionTuple;
-			Set=(Set*positionTuple)-Set;
+			totali=Set+positionTuple;
+			Set=positionTuple;
 		}
 		copiar = 0;
 		rewind(newFile);
+		fseek(newFile,Set,SEEK_SET);
 		while( Set <= totali && copiar < AttCount){
 			
 			if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
