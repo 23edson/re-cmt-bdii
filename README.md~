@@ -48,7 +48,9 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
 
 int createTable( char *TableName, field *Attributes, int numberAtt);
 
-int insertInto( char *tableName, Element_t *Attributes);
+int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positionTuple);
+
+int counter( int init, FILE *metadados, int total, criar *myTable );
 
 Dicionario:
 files/fs_tabela.dat
@@ -58,13 +60,17 @@ lnome;  nome tabela: TNAME_LENGHT ou seja 20 characteres
 fnome;  nome fisico: TNAME_LENGHT characteres
 dir;    diretório: TNAME_LENGHT characteres
 
-para achar arquivo de dados dir concatenado com fnome;
+para achar arquivo de dados: dir concatenado com fnome;
+padrão: files/data/<nomearquivo>.dat
+
 Colunas da tabela:
 files/fs_coluna.dat
 estrutura:
+
 id; da tabela
-nome coluna
+(nome coluna
 tipo
-tamanho
+tamanho)*numero de colunas
 para cada tabela
+
 

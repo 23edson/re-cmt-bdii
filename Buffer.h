@@ -77,7 +77,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt);
 //função para inserir uma tupla no arquivo de dados (nome da tabela, atributos ver 'struct Element_t' acima)
 //em caso da tabela ja ter sido criada retorna OKAY / OUT_MEMORIA / TABLE_NOT_FOUND / ABORT / FILE_NOT_FOUND
 // VIOLATE_NUMBER_LENGTH
-int insertInto( char *tableName, Element_t *Attributes,bool overWrite);
+int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positionTuple);
 
 //função para liberar a memoria do bufferPool
 int bufferFree(buffer *bpool);

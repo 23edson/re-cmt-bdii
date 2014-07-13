@@ -948,7 +948,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	
 	return getErro;
 }
-int insertInto( char *tableName, Element_t *Attributes,bool overWrite){
+int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positionTuple){
 	
 	if(!Attributes || !tableName)
 		return ABORT;
@@ -1099,27 +1099,58 @@ int insertInto( char *tableName, Element_t *Attributes,bool overWrite){
 	};
 	copiar = 0; 
 	if(overWrite){
-		long totali=0;
+		long totali=0,Set=0,inst=0;
 		fseek(newFile,0,SEEK_END);
 		totali=ftell(newFile);
 		rewind(newFile);
-		
-		while( copiar < AttCount){
+		while( Set < totali && copiar < AttCount ){
 			
 			if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
-				fwrite( Attributes[copiar].Str,sizeof(char), mDados[copiar].fLenght, newFile);
+				Set+=sizeof(char)*mDados[copiar].fLenght;
 			}
 			else if( mDados[copiar].fType == 'C' && Attributes[copiar].type == Caracter){ 
-				fwrite(Attributes[copiar].Str, sizeof(char),1, newFile);
+				Set+=sizeof(char);
 			}	
 			else if(mDados[copiar].fType == 'D' && Attributes[copiar].type == Ndouble){
-				fwrite( Attributes[copiar].Ddouble, sizeof(double), 1, newFile);
+				Set+=sizeof(double);
 			}
 			else{
-				fwrite( Attributes[copiar].Dint, sizeof(int),1, newFile);
+				Set+=sizeof(int);
+				inst++;
 			}
 			copiar++;
 		}
+		if(Set < totali ){
+			totali=Set*positionTuple;
+			Set=(Set*positionTuple)-Set;
+		}
+		copiar = 0;
+		rewind(newFile);
+		while( Set <= totali && copiar < AttCount){
+			
+			if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
+				fwrite( Attributes[copiar].Str,sizeof(char), mDados[copiar].fLenght, newFile);
+				Set+=sizeof(char)*mDados[copiar].fLenght;
+			}
+			else if( mDados[copiar].fType == 'C' && Attributes[copiar].type == Caracter){ 
+				fwrite(Attributes[copiar].Str, sizeof(char),1, newFile);
+				Set+=sizeof(char);
+			}	
+			else if(mDados[copiar].fType == 'D' && Attributes[copiar].type == Ndouble){
+				fwrite( Attributes[copiar].Ddouble, sizeof(double), 1, newFile);
+				Set+=sizeof(double);
+			}
+			else{
+				fwrite( Attributes[copiar].Dint, sizeof(int),1, newFile);
+				Set+=sizeof(int);
+			}
+			copiar++;
+		};
+		free(mDados);
+		free(diretorio);
+		free(myTable);
+		fclose(newFile);
+		return OVERWRITE_RIGHT;
 	}
 	while( copiar < AttCount){
 		
