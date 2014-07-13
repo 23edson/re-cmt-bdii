@@ -151,6 +151,7 @@ void applyReplacementPolicies(buffer *bPool){
 	}
 	else{
 		//Aqui deve ser colocado o código para regravação do arquivo.
+		
 
 	}
 }
@@ -1127,4 +1128,24 @@ int insertInto( char *tableName, Element_t *Attributes){
 	fclose(newFile);
 	return OKAY;
 }
-
+int bufferFree(buffer *bpool){
+	//função para liberar a memoria do BufferPool
+	if(!bpool)
+		return OKAY;
+	if(!bpool->fieldList){
+		free(bpool);
+		return OKAY;
+	}
+	int i;
+	for(i=0;i<BUFFER_SIZE;i++){
+		if(!bpool->bp[i].data){
+			free(bpool->fieldList);
+			free(bpool);
+			return OKAY;
+		};
+		free(bpool->bp[i].data);
+	}
+	free(bpool->fieldList);
+	free(bpool);
+	return OKAY;
+}

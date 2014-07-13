@@ -131,10 +131,8 @@ int main(){
 	
 	//if(showBuffer(bufferPool));
 	puts("\n");
-	if(bufferPool){
-		free(bufferPool->fieldList);
-		free(bufferPool);
-	}
+	bufferFree(bufferPool);
+		
 	return 0;
 
 }

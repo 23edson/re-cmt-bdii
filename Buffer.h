@@ -61,7 +61,7 @@ int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
 int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
 
 //Função que mostrará o conteúdo do Buffer Pool na tela
-//int showBuffer(buffer *bufferPool,int page); função grupo anterior
+//int showBuffer(buffer *bufferPool,int page); função com printfs sera ignorada
 
 // retorna posição da tupla que está procurando no arquivo, ou TUPLE_NOT_FOUND
 int getTupleNumber(FILE *arquivo, int position, int tamTuple);
@@ -78,3 +78,6 @@ int createTable( char *TableName, field *Attributes, int numberAtt);
 //em caso da tabela ja ter sido criada retorna OKAY / OUT_MEMORIA / TABLE_NOT_FOUND / ABORT / FILE_NOT_FOUND
 // VIOLATE_NUMBER_LENGTH
 int insertInto( char *tableName, Element_t *Attributes);
+
+//função para liberar a memoria do bufferPool
+int bufferFree(buffer *bpool);
