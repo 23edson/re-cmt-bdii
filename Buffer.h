@@ -74,7 +74,9 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
 //outros retornos OUT_MEMORIA / VALOR_INVALIDO / ABORT / FILE_NOT_FOUND
 int createTable( char *TableName, field *Attributes, int numberAtt);
 
-//função para inserir uma tupla no arquivo de dados (nome da tabela, atributos ver 'struct Element_t' acima)
+//função para inserir uma tupla no arquivo de dados (nome da tabela, atributos ver 'struct Element_t' acima,
+//verdadeiro ou falso para sobre escrever,caso o booleano anterior seja verdadeiro este campo é o diskSeek que é o
+//lugar certo onde será feito a sobregravação)
 //em caso da tabela ja ter sido criada retorna OKAY / OUT_MEMORIA / TABLE_NOT_FOUND / ABORT / FILE_NOT_FOUND
 // VIOLATE_NUMBER_LENGTH
 int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positionTuple);
