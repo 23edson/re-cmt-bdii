@@ -16,7 +16,11 @@ typedef struct field{
 
 typedef struct bufferPage
 {
-	int diskSeek; //Posição no disco para poder regravar os dados se necessário
+	int idNumber;
+	field *fieldList;
+	int fieldCount;
+	char *arq;
+	int diskSeek; //contador de bytes ocupados
 	int pinCount; //Pin Count
 	int rewriteBit;//Dirty Bit
 	char *data; //Tupla de dados
@@ -24,10 +28,10 @@ typedef struct bufferPage
 typedef struct buffer
 {
 	int countItems;
+	int countMeta;
 	int nextPageAvaliable;
-	field *fieldList;
-	int fieldCount;
-	bufferPage bp[BUFFER_SIZE];
+	//bufferPage *itens;
+	bufferPage bp[BP_PAGES];
 }buffer;
 
 /*typedef struct tupla{
