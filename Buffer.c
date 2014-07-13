@@ -967,21 +967,26 @@ int insertInto( char *tableName, Element_t *Attributes){
 	char *diretorio = NULL;
 	criar *myTable = NULL;
 	myTable = (criar *)malloc(sizeof(criar));
-	if(!myTable)
+	if(!myTable){
+		fclose(table);
 		return OUT_MEMORIA;
+	}
 	
 	int getErro = searchTable(table, tableName, &myTable);
 	
 	
-	if(getErro != OKAY)
+	if(getErro != OKAY){
+		fclose(table);
+		free(myTable);
 		return getErro;
-	
-	
+	}
+	fclose(table);
 	
 	metadados = fopen("files/fs_coluna.dat", "r");
-	if(!metadados)
+	if(!metadados){
+		free(myTable);
 		return FILE_NOT_FOUND;
-		
+	}
 	fseek(metadados,0,SEEK_END);
 	long total = ftell(metadados); //Tamanho do arquivo
 	rewind(metadados);
@@ -1004,6 +1009,8 @@ int insertInto( char *tableName, Element_t *Attributes){
 		}
 	}
 	if( pos == -1)
+		free(myTable);
+		fclose(metadados);
 		return TABLE_NOT_FOUND; //Table Not Found
 		
 	fseek(metadados, pos, SEEK_SET);
@@ -1017,7 +1024,11 @@ int insertInto( char *tableName, Element_t *Attributes){
 		i = ftell(metadados);
 	}
 	mDados = (field *)malloc(sizeof(field) * AttCount);
-	
+	if(!mDados){
+		free(myTable);
+		fclose(metadados);
+		return OUT_MEMORIA;
+	}
 	fseek(metadados, pos, SEEK_SET);
 	
 	copiar = 0;
@@ -1033,7 +1044,7 @@ int insertInto( char *tableName, Element_t *Attributes){
 		
 		endLoop += CONST_META;
 	}
-	
+	fclose(metadados);
 	/*if(Quantidade != AttCount) //caso o número de atributos no parâmetro for menor ou maior que a quantidade de att.
 		return ERRO_ATT_NUMBER;
 	*/	
@@ -1046,23 +1057,27 @@ int insertInto( char *tableName, Element_t *Attributes){
 			
 			if(testeTam(*Attributes[copiar].Dint, mDados[copiar].fLenght) != OKAY){
 				free(mDados);
-				free(diretorio);
 				free(myTable);
-				fclose(metadados);
-				
 				return VIOLATE_NUMBER_LENGTH;
 			}
 		}
 		copiar++;
 	}
 	diretorio = (char *)malloc(sizeof(char)* CONST);
-	
+	if(!diretorio){
+		free(myTable);
+		free(mDados);
+		return OUT_MEMORIA;
+	}
 	strcpy(diretorio, myTable->dir);
 	strcat(diretorio, myTable->fnome);
 	newFile = fopen(diretorio, "a+");
 	
 	if(!newFile){
 		if(!(newFile=fopen(diretorio,"w+"))){
+			free(myTable);
+			free(mDados);
+			free(diretorio);
 			return FILE_NOT_FOUND;
 		}
 	}
@@ -1109,7 +1124,6 @@ int insertInto( char *tableName, Element_t *Attributes){
 	free(mDados);
 	free(diretorio);
 	free(myTable);
-	fclose(metadados);
 	fclose(newFile);
 	return OKAY;
 }
