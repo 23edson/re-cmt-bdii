@@ -1072,10 +1072,7 @@ int insertInto( char *tableName, Element_t *Attributes){
 	}
 	strcpy(diretorio, myTable->dir);
 	strcat(diretorio, myTable->fnome);
-	if(overWrite){
-		newFile = fopen(diretorio, "r+");
-		if(!newFile)
-			newFile = fopen(diretorio, "a+");
+	newFile = fopen(diretorio, "a+");
 		if(!newFile){
 			if(!(newFile=fopen(diretorio,"w+"))){
 				free(myTable);
@@ -1084,75 +1081,8 @@ int insertInto( char *tableName, Element_t *Attributes){
 				return FILE_NOT_FOUND;
 			}
 		}
-	}
-	else{
-		
-		newFile = fopen(diretorio, "a+");
-		if(!newFile){
-			if(!(newFile=fopen(diretorio,"w+"))){
-				free(myTable);
-				free(mDados);
-				free(diretorio);
-				return FILE_NOT_FOUND;
-			}
-		}
-	};
-	copiar = 0; 
-	if(overWrite){
-		long totali=0,Set=0,inst=0;
-		fseek(newFile,0,SEEK_END);
-		totali=ftell(newFile);
-		rewind(newFile);
-		while( Set < totali && copiar < AttCount ){
-			
-			if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
-				Set+=sizeof(char)*mDados[copiar].fLenght;
-			}
-			else if( mDados[copiar].fType == 'C' && Attributes[copiar].type == Caracter){ 
-				Set+=sizeof(char);
-			}	
-			else if(mDados[copiar].fType == 'D' && Attributes[copiar].type == Ndouble){
-				Set+=sizeof(double);
-			}
-			else{
-				Set+=sizeof(int);
-				inst++;
-			}
-			copiar++;
-		}
-		if(Set < totali ){
-			totali=Set+positionTuple;
-			Set=positionTuple;
-		}
-		copiar = 0;
-		rewind(newFile);
-		fseek(newFile,Set,SEEK_SET);
-		while( Set <= totali && copiar < AttCount){
-			
-			if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
-				fwrite( Attributes[copiar].Str,sizeof(char), mDados[copiar].fLenght, newFile);
-				Set+=sizeof(char)*mDados[copiar].fLenght;
-			}
-			else if( mDados[copiar].fType == 'C' && Attributes[copiar].type == Caracter){ 
-				fwrite(Attributes[copiar].Str, sizeof(char),1, newFile);
-				Set+=sizeof(char);
-			}	
-			else if(mDados[copiar].fType == 'D' && Attributes[copiar].type == Ndouble){
-				fwrite( Attributes[copiar].Ddouble, sizeof(double), 1, newFile);
-				Set+=sizeof(double);
-			}
-			else{
-				fwrite( Attributes[copiar].Dint, sizeof(int),1, newFile);
-				Set+=sizeof(int);
-			}
-			copiar++;
-		};
-		free(mDados);
-		free(diretorio);
-		free(myTable);
-		fclose(newFile);
-		return OVERWRITE_RIGHT;
-	}
+	
+	copiar = 0;
 	while( copiar < AttCount){
 		
 		if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
@@ -1195,19 +1125,20 @@ int insertInto( char *tableName, Element_t *Attributes){
 	free(myTable);
 	fclose(newFile);
 	return OKAY;
+	
 }
 int bufferFree(buffer *bpool){
 	//função para liberar a memoria do BufferPool
 	if(!bpool)
 		return OKAY;
-	if(!bpool->fieldList){
-		free(bpool);
-		return OKAY;
-	}
 	int i;
 	for(i=0;i<BP_PAGES;i++){
+		if(!bpool->bp[i]fieldList){
+			free(bpool);
+			return OKAY;
+		}
 		if(!bpool->bp[i].data){
-			free(bpool->fieldList);
+			free(bpool->bp[i]fieldList);
 			free(bpool);
 			return OKAY;
 		};
