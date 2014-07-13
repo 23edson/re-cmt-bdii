@@ -124,7 +124,7 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber){
 void findNextAvaliable(buffer *bPool){
 	int i;
 	//Simples verificação se a página está disponível se do diskSeek for igual à -1
-	for(i = 0; i < BUFFER_SIZE; i++){
+	for(i = 0; i < BP_PAGES; i++){
 		if(bPool->bp[i].diskSeek == -1){
 			bPool->nextPageAvaliable = i;
 			break;
@@ -137,7 +137,7 @@ void applyReplacementPolicies(buffer *bPool){
 	//Aqui é escolhido a página do buffer que tem o menor pinCount para ser substituida
 	int i, j=0,lower = bPool->bp[0].pinCount;
 	bufferPage bPage = bPool->bp[0];
-	for(i = 0; i < BUFFER_SIZE; i++){
+	for(i = 0; i < BP_PAGES; i++){
 		if(bPool->bp[i].pinCount < lower){
 			bPage = bPool->bp[i];
 			lower = bPool->bp[i].pinCount;
@@ -160,7 +160,7 @@ int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
 	if(!bPool)
 		//puts("nao");
 	//Primeiro verifica se o buffer está cheio, caso esteja ele aplica as políticas de troca
-	if(bPool->countItems >= BUFFER_SIZE){
+	if(bPool->countItems >= BP_PAGES){
 		applyReplacementPolicies(bPool);//puts("aquixxxxxxxxxxxxxxxxx");
 	}
 	//É inserido na próxima página disponível
@@ -189,7 +189,7 @@ int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
 	}
 	printf("\n");
 	//Depois é mostrado o conteúdo do buffer
-	for(i = 0; i < BUFFER_SIZE; i++){
+	for(i = 0; i < BP_PAGES; i++){
 		//Só é mostrado as páginas que estão em uso.
 		if(bufferPool->bp[i].diskSeek != -1) {
 			j = 0;
@@ -386,7 +386,7 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 			return OUT_MEMORIA;
 		}
 		
-		initBuffer(*bufferPool, BUFFER_SIZE , fieldList, fieldCount);
+		initBuffer(*bufferPool, BP_PAGES , fieldList, fieldCount);
 	}
 	
 		
@@ -948,7 +948,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	
 	return getErro;
 }
-int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positionTuple){
+int insertInto( char *tableName, Element_t *Attributes){
 	
 	if(!Attributes || !tableName)
 		return ABORT;
@@ -1205,7 +1205,7 @@ int bufferFree(buffer *bpool){
 		return OKAY;
 	}
 	int i;
-	for(i=0;i<BUFFER_SIZE;i++){
+	for(i=0;i<BP_PAGES;i++){
 		if(!bpool->bp[i].data){
 			free(bpool->fieldList);
 			free(bpool);

@@ -57,7 +57,7 @@ int main(){
 		//puts("aqu");
 		//printf("c:%c", *inserts[3].Str);
 		
-		erro = insertInto("myCar", inserts,false,0);
+		erro = insertInto("myCar", inserts);
 		//printf("%d\n\n",erro);
 		
 	}

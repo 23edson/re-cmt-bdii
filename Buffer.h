@@ -6,7 +6,8 @@
 #include "erro.h"
 
 #define TNAME_LENGHT 20
-#define BUFFER_SIZE 16
+#define BP_PAGES 16
+#define BP_SIZE 512
 
 typedef struct field{
     char fName[TNAME_LENGHT];
@@ -78,12 +79,10 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
 //outros retornos OUT_MEMORIA / VALOR_INVALIDO / ABORT / FILE_NOT_FOUND
 int createTable( char *TableName, field *Attributes, int numberAtt);
 
-//função para inserir uma tupla no arquivo de dados (nome da tabela, atributos ver 'struct Element_t' acima,
-//verdadeiro ou falso para sobre escrever,caso o booleano anterior seja verdadeiro este campo é o diskSeek que é o
-//lugar certo onde será feito a sobregravação)
+//função para inserir uma tupla no arquivo de dados (nome da tabela, atributos ver 'struct Element_t' acima)
 //em caso da tabela ja ter sido criada retorna OKAY / OUT_MEMORIA / TABLE_NOT_FOUND / ABORT / FILE_NOT_FOUND
 // VIOLATE_NUMBER_LENGTH
-int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positionTuple);
+int insertInto( char *tableName, Element_t *Attributes);
 
 //função para liberar a memoria do bufferPool
 int bufferFree(buffer *bpool);

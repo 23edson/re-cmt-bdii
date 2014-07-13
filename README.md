@@ -48,7 +48,7 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
 
 int createTable( char *TableName, field *Attributes, int numberAtt);
 
-int insertInto( char *tableName, Element_t *Attributes,bool overWrite,int positionTuple);
+int insertInto( char *tableName, Element_t *Attributes);
 
 int counter( int init, FILE *metadados, int total, criar *myTable );
 
