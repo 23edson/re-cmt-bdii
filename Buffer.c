@@ -948,7 +948,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	
 	return getErro;
 }
-int insertInto( char *tableName, Element_t *Attributes){
+int insertInto( char *tableName, Element_t *Attributes,bool overWrite){
 	
 	if(!Attributes || !tableName)
 		return ABORT;
@@ -1072,19 +1072,55 @@ int insertInto( char *tableName, Element_t *Attributes){
 	}
 	strcpy(diretorio, myTable->dir);
 	strcat(diretorio, myTable->fnome);
-	newFile = fopen(diretorio, "a+");
-	
-	if(!newFile){
-		if(!(newFile=fopen(diretorio,"w+"))){
-			free(myTable);
-			free(mDados);
-			free(diretorio);
-			return FILE_NOT_FOUND;
+	if(overWrite){
+		newFile = fopen(diretorio, "r+");
+		if(!newFile)
+			newFile = fopen(diretorio, "a+");
+		if(!newFile){
+			if(!(newFile=fopen(diretorio,"w+"))){
+				free(myTable);
+				free(mDados);
+				free(diretorio);
+				return FILE_NOT_FOUND;
+			}
 		}
 	}
+	else{
+		
+		newFile = fopen(diretorio, "a+");
+		if(!newFile){
+			if(!(newFile=fopen(diretorio,"w+"))){
+				free(myTable);
+				free(mDados);
+				free(diretorio);
+				return FILE_NOT_FOUND;
+			}
+		}
+	};
 	copiar = 0; 
-	
-	
+	if(overWrite){
+		long totali=0;
+		fseek(newFile,0,SEEK_END);
+		totali=ftell(newFile);
+		rewind(newFile);
+		
+		while( copiar < AttCount){
+			
+			if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
+				fwrite( Attributes[copiar].Str,sizeof(char), mDados[copiar].fLenght, newFile);
+			}
+			else if( mDados[copiar].fType == 'C' && Attributes[copiar].type == Caracter){ 
+				fwrite(Attributes[copiar].Str, sizeof(char),1, newFile);
+			}	
+			else if(mDados[copiar].fType == 'D' && Attributes[copiar].type == Ndouble){
+				fwrite( Attributes[copiar].Ddouble, sizeof(double), 1, newFile);
+			}
+			else{
+				fwrite( Attributes[copiar].Dint, sizeof(int),1, newFile);
+			}
+			copiar++;
+		}
+	}
 	while( copiar < AttCount){
 		
 		if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
