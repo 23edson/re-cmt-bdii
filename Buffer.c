@@ -307,10 +307,9 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		return TABLE_NOT_FOUND;
 		 // fecha arquivo do dicionario
 	}
-	
+	fclose(tabela);
 	FILE *meta=fopen("files/fs_coluna.dat","r");// abre meta-dados
 	if(meta == NULL){ 
-		fclose(tabela);
 		free(name);
 		free(caminho);
 		free(biblio);
@@ -318,7 +317,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	}
 	FILE *arquivo = fopen(caminho,"r"); // abre arquivo de dados
 	if(arquivo == NULL){ 
-		fclose(tabela);
 		fclose(meta);
 		free(name);
 		free(caminho);
@@ -349,7 +347,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	}
 	
 	if( pos == -1){
-		fclose(tabela);
 		fclose(meta);
 		fclose(arquivo);
 		free(name);
@@ -364,7 +361,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	field *fieldList = NULL;
 	if(( fieldList = malloc(sizeof(field) * fieldCount))==NULL){
-			fclose(tabela);
 			fclose(meta);
 			fclose(arquivo);
 			free(name);
@@ -380,7 +376,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		*bufferPool = (buffer *)malloc(sizeof(buffer));
 		
 		if(!(*bufferPool)){
-			fclose(tabela);
 			fclose(meta);
 			fclose(arquivo);
 			free(name);
@@ -421,22 +416,51 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	
 	contador = getTupleNumber(arquivo,contador,tupleLenght);
-	if(contador == TUPLE_NOT_FOUND)
+	if(contador == TUPLE_NOT_FOUND){
+		fclose(meta);
+		fclose(arquivo);
+		free(name);
+		free(caminho);
+		free(biblio);
+		free(fieldList);
+		free(*bufferPool);
 		return contador;
+	}
 	//até aqui vamos deixar no arquivo colunas.dat
 	//Cria os campos temporários para a montagem da tupla
 	fclose(meta);
 	int *tInt = NULL;
 	if((tInt=malloc(sizeof(int)))==NULL){
+		fclose(arquivo);
+		free(name);
+		free(caminho);
+		free(biblio);
+		free(fieldList);
+		free(*bufferPool);
 		return OUT_MEMORIA;
 	}
 	double *tDouble = NULL;
 	if((tDouble=malloc(sizeof(double)))==NULL){
+		fclose(arquivo);
+		free(name);
+		free(caminho);
+		free(biblio);
+		free(fieldList);
+		free(*bufferPool);
+		free(tInt);
 		return OUT_MEMORIA;
 	}
 	char *tChar = NULL;
 	char *tTuple = NULL;
 	if((tTuple=malloc(sizeof(char)*tupleLenght))==NULL){
+		fclose(arquivo);
+		free(name);
+		free(caminho);
+		free(biblio);
+		free(fieldList);
+		free(*bufferPool);
+		free(tInt);
+		free(tDouble);
 		return OUT_MEMORIA;
 	}
 	
@@ -504,6 +528,15 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 				
 				//String
 				if((tChar = (char *)malloc(sizeof(char) * fieldList[i].fLenght))==NULL){
+					fclose(arquivo);
+					free(name);
+					free(caminho);
+					free(biblio);
+					free(fieldList);
+					free(*bufferPool);
+					free(tInt);
+					free(tDouble);
+					free(tTuple);
 					return OUT_MEMORIA;
 				}; 
 				fread(tChar,sizeof(char),fieldList[i].fLenght,arquivo);
@@ -557,6 +590,8 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 			fclose(arquivo);
 			free(name);
 			free(caminho);
+			free(fieldList);
+			free(*bufferPool);
 			free(tInt);
 			//free(tChar);
 			free(tDouble);
@@ -567,6 +602,7 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	fclose(arquivo);
 	free(name);
 	free(caminho);
+	free(biblio);
 	free(tInt);
 	//free(tChar);
 	free(tDouble);
@@ -931,7 +967,7 @@ int insertInto( char *tableName, Element_t *Attributes){
 	char *diretorio = NULL;
 	criar *myTable = NULL;
 	myTable = (criar *)malloc(sizeof(criar));
-	if(!mytable)
+	if(!myTable)
 		return OUT_MEMORIA;
 	
 	int getErro = searchTable(table, tableName, &myTable);

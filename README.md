@@ -35,6 +35,36 @@ nome campo
 tipo campo
 tamanho campo
 
-Alterado por EDSLUC:
-função void bufferInsert para 
-int bufferInsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~Alterado por EDSLUC:
+funções: 
+
+int bufferInsert(buffer *bPool,char *tuple, int diskSeek, int tupleLenght);
+
+int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
+
+int getTupleNumber(FILE *arquivo, int position, int tamTuple);
+
+Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
+
+int createTable( char *TableName, field *Attributes, int numberAtt);
+
+int insertInto( char *tableName, Element_t *Attributes);
+
+Dicionario:
+files/fs_tabela.dat
+estrutura:
+id; 	identificador 1 inteiro
+lnome;  nome tabela: TNAME_LENGHT ou seja 20 characteres
+fnome;  nome fisico: TNAME_LENGHT characteres
+dir;    diretório: TNAME_LENGHT characteres
+
+para achar arquivo de dados dir concatenado com fnome;
+Colunas da tabela:
+files/fs_coluna.dat
+estrutura:
+id; da tabela
+nome coluna
+tipo
+tamanho
+para cada tabela
+
