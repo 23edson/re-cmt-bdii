@@ -1,60 +1,203 @@
 
-//Este trabalho utiliza a licença GNU General Public License.
-
+/**	
+* Este trabalho utiliza a licença GNU General Public License.
+* gcc (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3
+* Copyright (C) 2011 Free Software Foundation, Inc.
+* 
+**/
 #include "Buffer.h"
 
-/*
+/**
  * 
- * @defines constantes
+ * @defines constantes das estruturas
  **/  
-#define CONST 30
-#define BASE 10
-#define CONST_MAX 94  //Constantes que nao interessam ao usuário
+
+#define CONST 30  
+#define BASE 10 
+#define CONST_MAX 94  
 #define CONST_META 29
 
 
-
-
-
+/**
+ * @struct Ctabela representa uma tabela em disco,
+ * onde id é número inteiro maior que zero;
+ * lnome é o nome lógico, ex : cliente;
+ * fnome é o nome físico, ex: file_1.dat
+ * dir é a localização em disco, ex: data/files/file_1.dat
+ **/
 struct Ctabela{
 		int id;
-		char lnome[CONST]; //Estrutura de fs_tabela.dat. De acordo com a parte anterior do trabalho
+		char lnome[CONST]; 
 		char fnome[CONST];
 		char dir[CONST];
 };
 typedef struct Ctabela criar;
 
+//Union para o tipo inteiro
 union c_int{
-		int  num;
-		char cnum[sizeof(int)];
-	};//union para o tipo inteiro
+	int  num;
+	char cnum[sizeof(int)];
+};
 
-	union c_double{
-		double numd;
-		char   cnumd[sizeof(double)];
-	};
+//Union para o tipo double
+union c_double{
+	double numd;
+	char  cnumd[sizeof(double)];
+};
 	
-
-void initBuffer(buffer *bPool,int lenght,field *fieldList, int fieldCount){
+/**
+ * Inicializa o buffer com os valores default.
+ * @param buffer *bPool é um ponteiro do tipo buffer não nulo.
+ * @struct buffer está definido no arquivo Buffer.h; 
+ * Constante BP_SIZE e BP_PAGES representam respectivamente o tamanho
+ * e a quantidade de páginas no bufferPool.
+ * @return não possui retorno.
+ **/
+void initBuffer(buffer *bPool){
 	int i;
-	//Inicializa o buffer com todos os diskSeek em -1 para ser a flag que verifica se está em uso ou não.
-	for(i = 0; i < lenght; i++){
-		bPool->bp[i].diskSeek = -1;
+	
+	for(i = 0; i < BP_PAGES; i++){
+		bPool->bp[i].diskSeek = 0;
+		bPool->bp[i].data = malloc(sizeof(char)*BP_SIZE);
+		bPool->bp[i].fieldList = NULL;
+		bPool->bp[i].fieldCount = 0;
+		bPool->bp[i].countTuples = 0;
 	}
 	bPool->countItems = 0;
 	bPool->nextPageAvaliable = 0;
-	bPool->fieldList = fieldList;
-	bPool->fieldCount = fieldCount;
+	
 }
+
+/**
+ * Copia uma sequência de caracteres a partir de uma posição i.
+ * @param char *tupla é a string de destino;
+ * @param char *vd é a string  de origem;
+ * @param int init, posição inicial em *tupla;
+ * @param int tam, quantidade de bytes a serem copiados.
+ * 
+ * @return não possui retorno essa função.
+ **/
 void cpyvar(char *tupla,char *vd,int init,int tam){
-		//copiar valores tipo double e int para a string
-		
-		int i=init,j=0;
-		for (;i<tam+init;i++)
-			tupla[i]=vd[j++];
+	int i=init,j=0;
+	
+	for (;i<tam+init;i++)
+		tupla[i]=vd[j++];
 }
+
+/**
+ * Soma os tamanhos dos atributos conforme os seus tipos.
+ * 
+ * @struct field está definida em Buffer.h
+ * @param field *fieldList - lista de atributos já definidos;
+ * @param int fieldCount - Quantidade de atributos de fieldList;
+ * @return int - Número da soma em bytes dos atributos.
+ **/
+int tupleTam( field *fieldList, int fieldCount){
+	int i;
+	int sum =0;
+	for( i = 0; i < fieldCount; i++){
+		if(fieldList[i].fType == 'I')
+			sum += sizeof(int);
+		else if(fieldList[i].fType == 'D')
+			sum += sizeof(double);
+		else if (fieldList[i].fType == 'C')
+			sum += sizeof(char);
+		else
+			sum += fieldList[i].fLenght;
+		
+	}
+		
+	return sum;
+}
+
+/**
+ * Procura o número da página e a posição inicial de uma determinada tupla na mesma.
+ * Função auxiliar de extractTupleFromBP. 
+ * @param buffer *bufferPool - buffer não nulo, aonde estão as tuplas a serem examinadas;
+ * @param int tupleNumber - Indica o número da tupla procurada no buffer;
+ * @param int *pagina - Após a localização da tupla e da página, essa variável recebe o número da página;
+ * @return int - Posição inicial da tupla no buffer.  
+ **/
+int getTuplePosition(buffer *bufferPool, int tupleNumber, int *pagina){
+	
+	int total = bufferPool->countItems;
+	//printf("%d %d %d\n", total,bufferPool->bp[0].countTuples,bufferPool->bp[1].countTuples);
+	//return 0;
+	int i = 1;
+	int j = 1;
+	int page = 0;
+	int flag = 1;
+	int position = 0;
+	int contador = 1;
+	while(i <= total){
+		while(j <= bufferPool->bp[page].countTuples){
+			
+			if(tupleNumber == contador){
+				flag = 0;
+				
+				position = (tupleTam(bufferPool->bp[page].fieldList, bufferPool->bp[page].fieldCount)*(j -1));
+				break;
+			}
+			j++;//printf("v %d\n", j); 
+			contador++;
+		}
+		if(flag==0){
+			//printf(" itns: %d %d %d %d %d", bufferPool->countItems, bufferPool->bp[1].countTuples, page, position,j);
+			*pagina = page;
+			return position;
+		}
+			
+		else{
+			//puts("cai");
+			i += j-1;
+			j = 1;
+			page++;
+		}
+		
+	}
+	printf(" itns: %d %d %d %d %d", bufferPool->countItems, bufferPool->bp[1].countTuples, page, position,j);
+	return ABORT;
+}
+
+/**
+ * Copia uma sequência de caracteres de acordo com os tamanhos específicados;
+ * Função semelhante à cpyvar, entretando nessa os dados são gravados sempre 
+ * a partir do índice zero. 
+ * 
+ * @param char *destino - string que armazenará a sequência copiada;
+ * @param char *origem - A fonte para a cópia;
+ * @param int initOrigem - A partir daqui serão buscados os caracteres no string origem;
+ * @param int destTam - Quantidade de caracteres;
+ * 
+ **/
+void copia_string( char *destino,char *origem, int initOrigem, int destTam){
+	
+	int i = initOrigem;
+	int j = 0;
+	
+	for( ; i < initOrigem + destTam;i++)
+		destino[j++] = origem[i];
+	
+}
+
+/**
+ *Extrai uma tupla específica do buffer, considerando a ordem de inserção. 
+ * 
+ * Funcionamento: O número da tupla a ser removida deve ser maior que 0 e menor
+ * que o número de elementos no buffer. Após obter o número da página e a posição
+ * inicial da tupla, a função aloca uma estrutura conforme os metadados corretos
+ * dela. Assim é gravado e retornado ao chamador.
+ * 
+ @struct Element_t - está definida em Buffer.h
+ * @param buffer *bufferPool - não nulo;
+ * @param int tupleNumber - Número da tupla a ser extraída.
+ * @return Element_t - Após pegar uma tupla do buffer, é alocado uma struct
+ * assim, ela é devolvida com seus devidos elementos.
+ * 
+ **/
 Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber){
 	int i;
+	int page;
 	//struct Element *arr =  * 3);
 	Element_t *myTuple = NULL;
 	int sum = 0;
@@ -63,33 +206,39 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber){
 	if(tupleNumber < 1 || tupleNumber > bufferPool->countItems)
 		return NULL;
 	
-	tupleNumber--;
+	//tupleNumber--;
+	//puts("aqz");
+	
+	int position = getTuplePosition(bufferPool, tupleNumber, &page);
 	//printf("Bu; %d,%d,%d,%d", bufferPool->nextPageAvaliable,bufferPool->countItems,bufferPool->fieldCount, bufferPool->bp[0].diskSeek);;
-	myTuple = (Element_t *)malloc(sizeof(Element_t) * bufferPool->fieldCount);
+	myTuple = (Element_t *)malloc(sizeof(Element_t) * bufferPool->bp[page].fieldCount);
 	if(!myTuple)
 		return NULL;
 	
-	for(i = 0; i < bufferPool->fieldCount; i ++){
-		if(bufferPool->fieldList[i].fType == 'S'){
+	sum = position;
+	for(i = 0; i < bufferPool->bp[page].fieldCount; i ++){
+		if(bufferPool->bp[page].fieldList[i].fType == 'S'){
+			//printf(" str : %d %d %d", page,sum, bufferPool->bp[page].fieldList[i].fLenght);
 			myTuple[i].type = String;
-			myTuple[i].Str = (char *) malloc(sizeof(char)*bufferPool->fieldList[i].fLenght);
-			cpyvar(myTuple[i].Str, bufferPool->bp[tupleNumber].data, sum, bufferPool->fieldList[i].fLenght);
-			sum += bufferPool->fieldList[i].fLenght;
+			myTuple[i].Str = (char *) malloc(sizeof(char)*bufferPool->bp[page].fieldList[i].fLenght);
+			copia_string(myTuple[i].Str, bufferPool->bp[page].data, sum, bufferPool->bp[page].fieldList[i].fLenght);
+			sum += bufferPool->bp[page].fieldList[i].fLenght;
+			//myTuple[i].Str = "HB20";
 		}
-		else if(bufferPool->fieldList[i].fType == 'I'){
+		else if(bufferPool->bp[page].fieldList[i].fType == 'I'){
 			myTuple[i].type = Nint;
-			myTuple[i].Dint = (int *)&bufferPool->bp[tupleNumber].data[sum];
+			myTuple[i].Dint = (int *)&bufferPool->bp[page].data[sum];
 			sum += sizeof(int);
 		}
-		else if(bufferPool->fieldList[i].fType == 'D'){
+		else if(bufferPool->bp[page].fieldList[i].fType == 'D'){
 			myTuple[i].type = Ndouble;
-			myTuple[i].Ddouble = (double *)&bufferPool->bp[tupleNumber].data[sum];
+			myTuple[i].Ddouble = (double *)&bufferPool->bp[page].data[sum];
 			sum += sizeof(double);
 		}
 		else{
 			myTuple[i].type = Caracter;
 			myTuple[i].Str = malloc(sizeof(char));
-			*myTuple[i].Str =bufferPool->bp[tupleNumber].data[sum];
+			*myTuple[i].Str =bufferPool->bp[page].data[sum];
 			sum += sizeof(char);
 		}	
 		//myTuple[i].tipo = bufferPool->fieldList[i].fType;
@@ -132,30 +281,77 @@ void findNextAvaliable(buffer *bPool){
 
 	}
 }
-
+/**
+ * Política de substituição LRU
+ * 
+ * 
+ * 
+ * 
+ * */
 void applyReplacementPolicies(buffer *bPool){
 	//Aqui é escolhido a página do buffer que tem o menor pinCount para ser substituida
-	int i, j=0,lower = bPool->bp[0].pinCount;
+	int i,j=0, lower = bPool->bp[0].pinCount;
 	bufferPage bPage = bPool->bp[0];
 	for(i = 0; i < BP_PAGES; i++){
 		if(bPool->bp[i].pinCount < lower){
-			bPage = bPool->bp[i];
-			lower = bPool->bp[i].pinCount;
+			bPage = bPool->bp[j];
+			lower = bPool->bp[j].pinCount;
 			j=i;
 		}
 	}
 	//A página encontrada fica armazenada em bPage
-	if(bPage.rewriteBit == 0){
-		bPool->bp[j].diskSeek = -1;
-		bPool->nextPageAvaliable = j;
+	if(bPage.rewriteBit == 1){
+		//Aqui deve ser colocado o código para regravação do arquivo.
+		Element_t *cr=NULL;
+		cr=extractTupleFromBP(bPool,j);
+		
+		free(cr);
 	}
 	else{
-		//Aqui deve ser colocado o código para regravação do arquivo.
-		
-
+		bPool->bp[i].diskSeek = -1;
+		bPool->nextPageAvaliable = i;
 	}
 }
-int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
+
+/**
+ * Função auxiliar de bufferInsert. Procura a página
+ * que contém o id específicado.
+ * 
+ * @param buffer *bPool - Fonte, não nula
+ * @param int id - número de identicação de uma tabela;
+ * @param int tamanho - Quantidade de metadados no buffer
+ * 
+ **/
+int procura_meta(buffer *bPool, int id, int tamanho){
+	int i;
+	
+	for( i = 0; i< tamanho; i++){
+		if(bPool->bp[i].idNumber == id)
+			return i;
+	}
+	return -1;
+}
+
+/**
+ * Faz a inserção de uma tupla no buffer, conforme os itens específicados pelos parâmetros;
+ * Organização: Uma página x armazena tuplas apenas da mesma tabela. a Constante BP_SIZE define
+ * o tamanho da página, assim pode-se altera-lá para obter um espaço maior para cada tabela no buffer.
+ * 
+ * Funcionamento : Se não possui mais páginas livres, uma delas devem ser substituída, aqui está definida
+ * a mais antiga (LRU). Deste modo, uma tabela é liberada do buffer.
+ * É feita a procura no buffer, em cada inserção, assim para garantir que cada página tenha tuplas de
+ * tabelas diferentes.
+ * 
+ * @param buffer *bPool - buffer devidamente alocado;
+ * @param char *tupla - Sequência de caracteres que serão adicionados ao bufferPool;
+ * @param field *fieldList - Metadados da tabela e da tupla a ser inserida;
+ * @param int fieldCount - números de atributos de tabela;
+ * @param int id - identicador da tabela, este id é recuperado do disco;
+ * 
+ * @return int - Flag de status, pode retornar OKAY ( número que representa sucesso). OU
+ * ABORT (representa um erro genérico, não específico e/ou não tratado).
+ **/
+int bufferInsert(buffer *bPool,char *tupla,int tupleLenght, field *fieldList, int fieldCount, int id){
 	
 	if(!bPool)
 		//puts("nao");
@@ -163,33 +359,52 @@ int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
 	if(bPool->countItems >= BP_PAGES){
 		applyReplacementPolicies(bPool);//puts("aquixxxxxxxxxxxxxxxxx");
 	}
-	//É inserido na próxima página disponível
-	bPool->bp[bPool->nextPageAvaliable].diskSeek = diskSeek;
-	if((bPool->bp[bPool->nextPageAvaliable].data = (char *)malloc(tupleLenght*sizeof(char)))==NULL){
-		return OUT_MEMORIA;
+	
+	int teste = procura_meta(bPool, id, bPool->countMeta);
+	
+	if(teste < 0){
+		bPool->bp[bPool->nextPageAvaliable].fieldList = fieldList;
+		bPool->bp[bPool->nextPageAvaliable].fieldCount = fieldCount;
+	    bPool->bp[bPool->nextPageAvaliable].idNumber = id;
+		teste = bPool -> nextPageAvaliable;
+		bPool->countMeta++;
+		bPool->nextPageAvaliable++;
+		//printf("id:%d ", teste);
 	}
-	cpyvar(bPool->bp[bPool->nextPageAvaliable].data, tupla, 0, tupleLenght);
+	//É inserido na próxima página disponível
+	//bPool->bp[bPool->nextPageAvaliable].diskSeek = diskSeek;
+	if( BP_SIZE - bPool->bp[teste].diskSeek > tupleLenght){
+		cpyvar(bPool->bp[teste].data, tupla, bPool->bp[teste].diskSeek, tupleLenght);
+		
+		bPool->bp[teste].diskSeek += tupleLenght;
+	
+	
+	
 	//strcpy(bPool->bp[bPool->nextPageAvaliable].data,tuple);
-	bPool->bp[bPool->nextPageAvaliable].pinCount = 0;
-	bPool->bp[bPool->nextPageAvaliable].rewriteBit = 0;
-	bPool->countItems ++;
+		bPool->bp[teste].pinCount = 0;
+		bPool->bp[teste].rewriteBit = 0;
+		bPool->bp[teste].countTuples++;
+	
+		bPool->countItems ++;
 	//É procurado a próxima página disponível
-	findNextAvaliable(bPool);
-	return 0;
+	//findNextAvaliable(bPool);
+		return OKAY;
+	}
+	return ABORT;
 }
-/*int showBuffer(buffer *bufferPool,int page){
+int showBuffer(buffer *bufferPool,int page){
 	if (!bufferPool->countItems) return EMPTY_BUFFER;
 	//Primeiro é mostrado os campos
 	int i, j=0;
 	printf("\n");
-	for(i = 0; i < bufferPool->fieldCount; i ++){
-		printf("%s",bufferPool->fieldList[i].fName);
+	for(i = 0; i < bufferPool->bp[i].fieldCount; i ++){
+		printf("%s",bufferPool->bp[i].fieldList[i].fName);
 		if (i==0) printf("\t");  
 		printf("\t");
 	}
 	printf("\n");
 	//Depois é mostrado o conteúdo do buffer
-	for(i = 0; i < BP_PAGES; i++){
+	for(i = 0; i < BP_SIZE; i++){
 		//Só é mostrado as páginas que estão em uso.
 		if(bufferPool->bp[i].diskSeek != -1) {
 			j = 0;
@@ -205,17 +420,31 @@ int bufferInsert(buffer *bPool,char *tupla, int diskSeek, int tupleLenght){
 	}
 	printf("\n\n");
 	return 0;
-*função grupo anterior para mostrar os dados na tela
-}*/
+}
+
+/**
+ *  Faz a contagem de números de atributos de uma tabela.
+ *  Funcionamento: a partir de uma número de id específicado, 
+ *  a função percorre o arquivo fs_coluna.dat, movendo o ponteiro
+ *  em relação aos tamanhos de cada estrutura, e fazendo a contagem
+ *  de números de atributos de uma tabela x que possui o id da tabela
+ *  requisitada.
+ * 
+ * 	@param int init - Aonde começa os metadados da tabela no arquivo;
+ *  @param FILE *metadados - Arquivo fs_coluna.dat
+ * 	@param int total - Representa o tamanho em bytes do arquivo.
+ *  @param criar *myTable - struct com a tabela, recuperado do disco anteriormente.
+ *  @return int - Devolve o número contados de atributos
+ **/
 int counter( int init, FILE *metadados, int total, criar *myTable ){
-	//Essas Função conta o número de atributos de uma tabela
+	
 	int copiar = myTable->id;
 	int AttCount = 0;
 	int i = init; //
 	
 	fseek( metadados, init , SEEK_SET);
 	//printf("aqui : %d, %d, %d, %ld", i,copiar,total,ftell(metadados));
-	while(i < total){ //Conta os atributos 
+	while(i < total){ 
 		fread( &copiar, sizeof(int), 1, metadados);//printf("cop: %d  e %ld", copiar, ftell(metadados));
 		if(myTable->id != copiar)
 			break;
@@ -228,6 +457,19 @@ int counter( int init, FILE *metadados, int total, criar *myTable ){
 	return AttCount;
 }
 
+/**
+ * Conta no arquivo o número de tuplas, tratando com um índice para tupla.
+ * Funcionamento: Conforme o tamanho do arquivo, muda o ponteiro no arquivo
+ * em relação ao tamanho da tupla. Assim, Quando a contagem é igual a tupla
+ * requisitada, é devolvido sua posição.
+ * 
+ * @param FILE *arquivo - Arquivo de dados a serem lidos;
+ * @param int position - Número que representa uma tupla, considerando a ordem de inserção;
+ * @param int tamTuple - Tamanho de uma tupla.
+ * @return int - TUPLE_NOT_FOUND ( Quando não encontra em disco ou o número da tupla não é válido)
+ * e OKAY ftell(arquivo) : Posição da tupla no arquivo.
+ * 
+ * */
 int getTupleNumber(FILE *arquivo, int position, int tamTuple){
 	if(position < 1)
 		return TUPLE_NOT_FOUND;
@@ -308,22 +550,13 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		return TABLE_NOT_FOUND;
 		 // fecha arquivo do dicionario
 	}
-	fclose(tabela);
+	
 	FILE *meta=fopen("files/fs_coluna.dat","r");// abre meta-dados
-	if(meta == NULL){ 
-		free(name);
-		free(caminho);
-		free(biblio);
-		return FILE_META_NOT_FOUND;
-	}
+	if(meta == NULL) return FILE_META_NOT_FOUND;
+
 	FILE *arquivo = fopen(caminho,"r"); // abre arquivo de dados
-	if(arquivo == NULL){ 
-		fclose(meta);
-		free(name);
-		free(caminho);
-		free(biblio);
-		return FILE_DATA_NOT_FOUND;
-	}
+	if(arquivo == NULL) return FILE_DATA_NOT_FOUND;
+
 	
 	int copiar = 0;
 	
@@ -347,14 +580,9 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		}
 	}
 	
-	if( pos == -1){
-		fclose(meta);
-		fclose(arquivo);
-		free(name);
-		free(caminho);
-		free(biblio);
+	if( pos == -1)
 		return TABLE_NOT_FOUND; //Table Not Found
-	}//printf("posss : %ld", pos); 
+	//printf("posss : %ld", pos); 
 	int fieldCount = counter( pos, meta, total, biblio); //Números de atributos da tabela
 	
 	fseek(meta, pos, SEEK_SET); //Seta o ponteiro para o início dos atributos da tabela 
@@ -362,31 +590,19 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	field *fieldList = NULL;
 	if(( fieldList = malloc(sizeof(field) * fieldCount))==NULL){
-			fclose(meta);
-			fclose(arquivo);
-			free(name);
-			free(caminho);
-			free(biblio);
 			return OUT_MEMORIA;
 	}; // aloca lista com o numero de campos que tem a tabela
 
 	
-	if(!(*bufferPool)){ //recebe ponteiro null para saber quando deve ser inicializado
+	if(!*bufferPool){ //recebe ponteiro null para saber quando deve ser inicializado
 		//puts("entrei");
 		
 		*bufferPool = (buffer *)malloc(sizeof(buffer));
 		
-		if(!(*bufferPool)){
-			fclose(meta);
-			fclose(arquivo);
-			free(name);
-			free(caminho);
-			free(biblio);
-			free(fieldList);
+		if(!*bufferPool)
 			return OUT_MEMORIA;
-		}
 		
-		initBuffer(*bufferPool, BP_PAGES , fieldList, fieldCount);
+		initBuffer(*bufferPool);
 	}
 	
 		
@@ -417,51 +633,22 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	
 	
 	contador = getTupleNumber(arquivo,contador,tupleLenght);
-	if(contador == TUPLE_NOT_FOUND){
-		fclose(meta);
-		fclose(arquivo);
-		free(name);
-		free(caminho);
-		free(biblio);
-		free(fieldList);
-		free(*bufferPool);
+	if(contador == TUPLE_NOT_FOUND)
 		return contador;
-	}
 	//até aqui vamos deixar no arquivo colunas.dat
 	//Cria os campos temporários para a montagem da tupla
 	fclose(meta);
 	int *tInt = NULL;
 	if((tInt=malloc(sizeof(int)))==NULL){
-		fclose(arquivo);
-		free(name);
-		free(caminho);
-		free(biblio);
-		free(fieldList);
-		free(*bufferPool);
 		return OUT_MEMORIA;
 	}
 	double *tDouble = NULL;
 	if((tDouble=malloc(sizeof(double)))==NULL){
-		fclose(arquivo);
-		free(name);
-		free(caminho);
-		free(biblio);
-		free(fieldList);
-		free(*bufferPool);
-		free(tInt);
 		return OUT_MEMORIA;
 	}
 	char *tChar = NULL;
 	char *tTuple = NULL;
 	if((tTuple=malloc(sizeof(char)*tupleLenght))==NULL){
-		fclose(arquivo);
-		free(name);
-		free(caminho);
-		free(biblio);
-		free(fieldList);
-		free(*bufferPool);
-		free(tInt);
-		free(tDouble);
 		return OUT_MEMORIA;
 	}
 	
@@ -529,15 +716,6 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 				
 				//String
 				if((tChar = (char *)malloc(sizeof(char) * fieldList[i].fLenght))==NULL){
-					fclose(arquivo);
-					free(name);
-					free(caminho);
-					free(biblio);
-					free(fieldList);
-					free(*bufferPool);
-					free(tInt);
-					free(tDouble);
-					free(tTuple);
 					return OUT_MEMORIA;
 				}; 
 				fread(tChar,sizeof(char),fieldList[i].fLenght,arquivo);
@@ -587,23 +765,13 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 		if(feof(arq)) break;
 		i = 0;*/
 		//puts("there");
-		if(bufferInsert(*bufferPool,tTuple,0,tupleLenght)==OUT_MEMORIA){
-			fclose(arquivo);
-			free(name);
-			free(caminho);
-			free(fieldList);
-			free(*bufferPool);
-			free(tInt);
-			//free(tChar);
-			free(tDouble);
-			free(tTuple);
+		if(bufferInsert(*bufferPool,tTuple,tupleLenght,fieldList,fieldCount,biblio->id)==OUT_MEMORIA)
 			return OUT_MEMORIA;
-		}
+	
 	//Fecha o arquivo de dados
 	fclose(arquivo);
 	free(name);
 	free(caminho);
-	free(biblio);
 	free(tInt);
 	//free(tChar);
 	free(tDouble);
@@ -611,7 +779,20 @@ int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador){
 	return OKAY;
 
 }
- 
+
+/**
+ * Procura por uma tabela no arquivo fs_tabela.dat
+ * Funcionamento: é lido o tamanho de uma tabela definido
+ * pela constante : CONST_MAX. Depois é comparado o nome lógico
+ * recuperado do arquivo, com o nome requisitado.
+ * 
+ * @param FILE *arquivo - Arquivo fs_tabela.dat
+ * @param char *Tabela - nome da tabela a ser procurada
+ * @param criar **myTable - Estrutura para armazenar a tabela recuperada
+ * @return int - FILE_NOT_FOUND( arquivo fs_tabela.dat não foi achado no disco),
+ * TABLE_NOT_FOUND ( Tabela não existe no arquivo), OKAY ( Êxito na procura);
+ * 
+ **/ 
 int searchTable(FILE *arquivo, char *Tabela, criar **myTable){
 	
 	if(!arquivo)
@@ -619,7 +800,7 @@ int searchTable(FILE *arquivo, char *Tabela, criar **myTable){
 	int contador = 0;
 	criar *table = (criar *)malloc(sizeof(criar));
 	if(!table)
-		return OUT_MEMORIA;
+		return 0;
 	
 	fseek( arquivo, 0, SEEK_END);
 	int total = ftell(arquivo);
@@ -643,7 +824,23 @@ int searchTable(FILE *arquivo, char *Tabela, criar **myTable){
 	return TABLE_NOT_FOUND; //erro table not found
 }
 		
-		
+/**
+ * Seu objetivo é verificar se um número está dentro de um padrão definido,
+ * ou seja, se dizemos que um inteiro pode ser apenas de 2 dígitos, então
+ * o limite deve ser de ( 0 até 99).
+ * 
+ * Funcionamento: o número é comparado se é menor com alguns múltiplo de 10, ou seja,
+ * neste caso, se é menor que (10,100,1000,10000,...);
+ * Deste modo, caso seja menor, que algum deles, e seu contador interno for igual ao
+ * número de dígitos. Então esse número respeita o limite.
+ * 
+ * 
+ * @param int numero - Valor a ser comparado;
+ * @param int count - Quantidade de dígitos ;
+ * 
+ * @return int - VIOLATE_NUMBER_LENGHT(se o teste deu errado, ou seja, o número não respeita
+ *  o limite de dígitos), OKAY ( O número respeita o limite).  
+ * */		
 int testeTam( int numero, int count){
 	//Essa função retorna a quantidade de digitos de um numero
 	int Pgroup = 10;
@@ -663,8 +860,15 @@ int testeTam( int numero, int count){
 		//LastGroup = Pgroup;
 		count++;
 	}
-	return VIOLATE_NUMBER_LENGTH;
+	return VIOLATE_NUMBER_LENGHT;
 }
+
+/**
+ * Função verifica se um caracter é uma letra.
+ * 
+ * @param char nome - um caracter a ser comparado;
+ * @return int - flag de status
+ **/
 int verifyCaracter( char nome){
 	//Vefirica se o caracter é uma letra
 	if((nome >= 'a' && nome <= 'z') || (nome >='A' && nome <= 'Z')) // de A até z na tabela ascii
@@ -673,6 +877,18 @@ int verifyCaracter( char nome){
 	return 0;
 
 }
+
+/**
+ * Função que faz algumas validações na hora de criar os metadados.
+ * Funcionamento : Primeiramente verifica se o nome possui apenas letras,
+ * depois analisa se o tipo é um formato válido.
+ * 
+ * @param field estrutura[] - vetor de atributos a serem analisados;
+ * @param int numberAtt - Quantidade de atributos no vetor;
+ * 
+ * @return int - VALOR_INVALIDO ( Não possui apenas letra no nome, ou o tipo
+ * é inválido) OKAY ( Valores corretos);
+ * */
 int checkMeta( field estrutura[], int numberAtt){
 	//Checa algumas situações
 	int i = 0;
@@ -801,9 +1017,23 @@ int createAttibutes( int id, field *atributos, int numberAtt){
 	fclose(metadados);
 	return OKAY;
 }
+
+/**
+ * O objetivo dessa função é  gerar um nome física para o arquivo de dados.
+ * De modo que fique sequêncial ex: file_1.dat,file_2.dat,file_3.dat;
+ * Nesta configuração, cada arquivo pertence a uma tabela
+ * Funcionamento: Primeiramente extrai o número da string. Que neste caso,
+ * sempre estará após um 'underscore' e antes de um ponto. Este número então,
+ * é passado para inteiro, e incrementado. Após isso, é colocado em uma nova
+ * string de maneira que esteja em sequência com o anterior. 
+ * 
+ * @param char *last - string com o nome físico da última tabela gravado em disco,
+ * se não houver algum então, a string estará definida como : 'file_0.dat'
+ * 
+ * @return char * - Devolve a string com o nome físico gerado. 
+ **/
  char *GeneratePhysName( char *last){
-	//A finalidade dessa função é gerar um nome para o arquivo de dados da tabela x. Ex: se a o nome do ultimo arquivo foi : file_1.dat
-	//Então o próximo será file_2.dat
+	
 	char caracter = 'a';
 	bool isNumber = false;
 	char *number;
@@ -892,7 +1122,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	
 	criar *ConstTab = malloc(sizeof(criar));
 	if(!ConstTab){
-		return OUT_MEMORIA;
+		return 0;
 	}
 	ConstTab->id = 0;
 	strcpy(ConstTab->fnome,"file_0\0");
@@ -910,20 +1140,28 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	}
 	//printf("Valor:%d", count);
 	ConstTab->id ++;
+	i = 0;
+	while( i < strlen(TableName)){
+		if(!verifyCaracter(TableName[i]))
+			return VALOR_INVALIDO;
+		i++;
+	}
 	strcpy(ConstTab->lnome, TableName);
 	//puts(ConstTab->fnome);
 
 	char *getFromReturn = GeneratePhysName(ConstTab->fnome);
 	if(!getFromReturn)
-		return VALOR_INVALIDO;
+		return 0;
 		
 	strcpy( ConstTab->fnome, getFromReturn);//puts(ConstTab->fnome);
+	int getErro = createAttibutes( ConstTab->id, Attributes, numberAtt);
 	
-	fwrite(&ConstTab->id, sizeof(int), 1, arquivo);
-	fwrite(ConstTab->lnome, sizeof(char), CONST, arquivo);
-	fwrite(ConstTab->fnome, sizeof(char), CONST, arquivo);
-	fwrite(ConstTab->dir, sizeof(char), CONST, arquivo);
-	
+	if(getErro == OKAY){
+		fwrite(&ConstTab->id, sizeof(int), 1, arquivo);
+		fwrite(ConstTab->lnome, sizeof(char), CONST, arquivo);
+		fwrite(ConstTab->fnome, sizeof(char), CONST, arquivo);
+		fwrite(ConstTab->dir, sizeof(char), CONST, arquivo);
+	}
 	/*rewind(arquivo);
 	fseek(arquivo, 0, SEEK_CUR);
 	
@@ -939,7 +1177,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 	puts(ConstTab1.fnome);
 	puts(ConstTab1.dir);*/
 	
-	int getErro = createAttibutes( ConstTab->id, Attributes, numberAtt);
+	
 	//criar o arquivo
 	
 	fclose(arquivo);
@@ -950,7 +1188,7 @@ int createTable( char *TableName, field *Attributes, int numberAtt){
 }
 int insertInto( char *tableName, Element_t *Attributes){
 	
-	if(!Attributes || !tableName)
+	if(!Attributes || !tableName || !Attributes)
 		return ABORT;
 	
 		
@@ -968,26 +1206,20 @@ int insertInto( char *tableName, Element_t *Attributes){
 	char *diretorio = NULL;
 	criar *myTable = NULL;
 	myTable = (criar *)malloc(sizeof(criar));
-	if(!myTable){
-		fclose(table);
-		return OUT_MEMORIA;
-	}
+	
 	
 	int getErro = searchTable(table, tableName, &myTable);
 	
 	
-	if(getErro != OKAY){
-		fclose(table);
-		free(myTable);
+	if(getErro != OKAY)
 		return getErro;
-	}
-	fclose(table);
+	
+	
 	
 	metadados = fopen("files/fs_coluna.dat", "r");
-	if(!metadados){
-		free(myTable);
+	if(!metadados)
 		return FILE_NOT_FOUND;
-	}
+		
 	fseek(metadados,0,SEEK_END);
 	long total = ftell(metadados); //Tamanho do arquivo
 	rewind(metadados);
@@ -1010,8 +1242,6 @@ int insertInto( char *tableName, Element_t *Attributes){
 		}
 	}
 	if( pos == -1)
-		free(myTable);
-		fclose(metadados);
 		return TABLE_NOT_FOUND; //Table Not Found
 		
 	fseek(metadados, pos, SEEK_SET);
@@ -1025,11 +1255,7 @@ int insertInto( char *tableName, Element_t *Attributes){
 		i = ftell(metadados);
 	}
 	mDados = (field *)malloc(sizeof(field) * AttCount);
-	if(!mDados){
-		free(myTable);
-		fclose(metadados);
-		return OUT_MEMORIA;
-	}
+	
 	fseek(metadados, pos, SEEK_SET);
 	
 	copiar = 0;
@@ -1045,7 +1271,7 @@ int insertInto( char *tableName, Element_t *Attributes){
 		
 		endLoop += CONST_META;
 	}
-	fclose(metadados);
+	
 	/*if(Quantidade != AttCount) //caso o número de atributos no parâmetro for menor ou maior que a quantidade de att.
 		return ERRO_ATT_NUMBER;
 	*/	
@@ -1058,38 +1284,39 @@ int insertInto( char *tableName, Element_t *Attributes){
 			
 			if(testeTam(*Attributes[copiar].Dint, mDados[copiar].fLenght) != OKAY){
 				free(mDados);
+				free(diretorio);
 				free(myTable);
-				return VIOLATE_NUMBER_LENGTH;
+				fclose(metadados);
+				
+				return VIOLATE_NUMBER_LENGHT;
 			}
 		}
 		copiar++;
 	}
+	
 	diretorio = (char *)malloc(sizeof(char)* CONST);
-	if(!diretorio){
-		free(myTable);
-		free(mDados);
-		return OUT_MEMORIA;
-	}
+	
 	strcpy(diretorio, myTable->dir);
 	strcat(diretorio, myTable->fnome);
 	newFile = fopen(diretorio, "a+");
-		if(!newFile){
-			if(!(newFile=fopen(diretorio,"w+"))){
-				free(myTable);
-				free(mDados);
-				free(diretorio);
-				return FILE_NOT_FOUND;
-			}
-		}
 	
-	copiar = 0;
+	if(!newFile){
+		if(!(newFile=fopen(diretorio,"w+"))){
+			return FILE_NOT_FOUND;
+		}
+	}
+	copiar = 0; 
+	//puts();i = 51;
+	//printf(" %f", *Attributes[1].Ddouble); 
 	while( copiar < AttCount){
 		
 		if(mDados[copiar].fType == 'S' && Attributes[copiar].type == String){
 			//printf("val :%d, %d ", mDados[copiar].fLenght,copiar);
 			//char sg[15];
 			//strcpy(sg, );
-			//puts(sg);
+			
+			//puts( Attributes[copiar].Str);
+			
 			fwrite( Attributes[copiar].Str,sizeof(char), mDados[copiar].fLenght, newFile);
 		}
 		else if( mDados[copiar].fType == 'C' && Attributes[copiar].type == Caracter){ 
@@ -1108,6 +1335,8 @@ int insertInto( char *tableName, Element_t *Attributes){
 		}
 		copiar++;
 	}
+	puts("sg");
+			
 	/*fclose(newFile);
 	newFile = fopen(diretorio, "r");
 	char *at = malloc(sizeof(char)*15);
@@ -1123,28 +1352,8 @@ int insertInto( char *tableName, Element_t *Attributes){
 	free(mDados);
 	free(diretorio);
 	free(myTable);
+	fclose(metadados);
 	fclose(newFile);
 	return OKAY;
-	
 }
-int bufferFree(buffer *bpool){
-	//função para liberar a memoria do BufferPool
-	if(!bpool)
-		return OKAY;
-	int i;
-	for(i=0;i<BP_PAGES;i++){
-		if(!bpool->bp[i]fieldList){
-			free(bpool);
-			return OKAY;
-		}
-		if(!bpool->bp[i].data){
-			free(bpool->bp[i]fieldList);
-			free(bpool);
-			return OKAY;
-		};
-		free(bpool->bp[i].data);
-	}
-	free(bpool->fieldList);
-	free(bpool);
-	return OKAY;
-}
+
