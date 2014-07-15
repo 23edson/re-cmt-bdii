@@ -302,7 +302,7 @@ void applyReplacementPolicies(buffer *bPool){
 	//A página encontrada fica armazenada em bPage
 	if(bPage.rewriteBit == 1){
 		//Aqui deve ser colocado o código para regravação do arquivo.
-		i=returnDisk(bPage);
+		i=returnDisk(&bPage);
 		if(i==OKAY)
 			bPage.rewriteBit=0;
 			free(bPage.fieldList);
@@ -1372,6 +1372,7 @@ int returnDisk(bufferPage *bp){
 	caminho=(char*)malloc(sizeof(char)*CONST);
 	if(!caminho){
 		fclose(arq);
+		return OUT_MEMORIA;
 	}
 	criar *biblio=NULL;
 	biblio=(criar*)malloc(sizeof(criar));
@@ -1385,14 +1386,14 @@ int returnDisk(bufferPage *bp){
 	
 	fseek(arq,0,SEEK_END); //Coloca o ponteiro do arquivo (tabela) no final.
 	long total = ftell(arq); //Retorna o posição atual do ponteiro no arquivo.
-	rewind(tabela); //Coloca o ponteiro no início do arquivo.
+	rewind(arq); //Coloca o ponteiro no início do arquivo.
 	
 	for(;endLoop < total; endLoop += CONST_MAX ){
 		fread(&biblio->id, sizeof(int), 1, arq);
 		fread(biblio->lnome,sizeof(char),CONST,arq);
 		fread(biblio->fnome,sizeof(char),CONST,arq);
 		fread(biblio->dir,sizeof(char),CONST,arq);
-		if(biblio->id==bp.idNumber){	
+		if(biblio->id==bp->idNumber){	
 			achou=1;
 			strcpy(caminho,biblio->dir);
 			strcat(caminho,biblio->fnome);
@@ -1419,30 +1420,30 @@ int returnDisk(bufferPage *bp){
 	total=ftell(dado);
 	rewind(dado);
 	
-	for(i=0,endLoop=0;i<bp.fieldCount;i++){
+	for(i=0,endLoop=0;i<bp->fieldCount;i++){
 		endLoop+=bp->fieldList[i].fLenght;
 	};
-	if(endLoop < bp.diskSeek){
-		if(bp.diskSeek/endLoop!=1){
-			fseek(dado,bp.diskSeek-endLoop,SEEK_SET);
+	if(endLoop < bp->diskSeek){
+		if(bp->diskSeek/endLoop!=1){
+			fseek(dado,bp->diskSeek-endLoop,SEEK_SET);
 		}
 	}
-		
-	for(i=0,j = 0;i < endLoop && j < bp.fieldCount;j++){	
-		if(bp.fieldList[j].fType=='I'){
-			fwrite(&bp.data[i],sizeof(int),1,dado);
+	int j;	
+	for(i=0,j = 0;i < endLoop && j < bp->fieldCount;j++){	
+		if(bp->fieldList[j].fType=='I'){
+			fwrite(&bp->data[i],sizeof(int),1,dado);
 			i+=sizeof(int);
 		}
-		else if(bp.fieldList[j].fType=='S'){
-			fwrite(&bp.data[i],sizeof(char),bp.fieldList[j].fLenght,dado);
-			i+=sizeof(char)*bp.fieldList[j].fLenght;
+		else if(bp->fieldList[j].fType=='S'){
+			fwrite(&bp->data[i],sizeof(char),bp->fieldList[j].fLenght,dado);
+			i+=sizeof(char)*bp->fieldList[j].fLenght;
 		}
-		else if(bp.fieldList[j].fType=='D'){
-			fwrite(&bp.data[i],sizeof(int),1,dado);
+		else if(bp->fieldList[j].fType=='D'){
+			fwrite(&bp->data[i],sizeof(int),1,dado);
 			i+=sizeof(double);
 		}
-		else if(bp.fieldList[j].fType=='C'){
-			fwrite(&bp.data[i],sizeof(char),1,dado);
+		else if(bp->fieldList[j].fType=='C'){
+			fwrite(&bp->data[i],sizeof(char),1,dado);
 			i+=sizeof(char);
 		}
 		

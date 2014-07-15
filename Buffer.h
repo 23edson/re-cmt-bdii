@@ -236,3 +236,5 @@ int createTable( char *TableName, field *Attributes, int numberAtt);
  * 		OKAY : A tupla foi inserida no arquivo de dados devidamente.
  **/
 int insertInto( char *tableName, Element_t *Attributes);
+
+int returnDisk(bufferPage *bp);
