@@ -165,6 +165,8 @@ int bufferInsert(buffer *bPool,char *tupla,int tupleLenght, field *fieldList, in
  *   	FILE_DATA_NOT_FOUND : O Arquivo de dados não foi encontrado no disco;
  * 		TUPLE_NOT_FOUND : o @param contador é menor que 1 ou maior que o número de tuplas no disco;
  * 		OKAY : A função copiou a tupla para o buffer e finalizou com sucesso.
+ * 
+ * *Lembre-se de liberar o espaço alocado para bufferPool ao final.
  **/
 int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
 
@@ -185,11 +187,11 @@ int getTupleNumber(FILE *arquivo, int position, int tamTuple);
  * @param int tupleNumber - Número da tupla a ser extraída. Considera a ordem de inserção no buffer.
  * @return Element_t - Após pegar uma tupla do buffer, é alocado uma struct
  * assim, ela é devolvida com seus devidos elementos.
- * Em caso de bufferPool for nulo ou tupleNumber não foi um número válido ou a função não conseguir
+ * Em caso de bufferPool for nulo/vazio ou tupleNumber não foi um número válido ou a função não conseguir
  * alocar memória, a mesma retorna nulo.
  * 
  **/
-Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
+Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber, int *quantidade);
 
 /**
  * Cria uma tabela em disco conforme os parâmetros passados.
@@ -211,8 +213,12 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
  * 		FILE_META_NOT_FOUND : Arquivo fs_coluna.dat não foi localizado;
  * 		VALUE_ALREADY_EXISTS: A tabela já existe no disco;
  * 		OKAY - A tabela e seus metadados foram devidamente criados e gravados no disco;
+ * 
+ * *Liberar o espaço após o uso é de responsabilidade do usuário.
  * 		
  **/
+ 
+ Element_t *extractTuplesFromPage(buffer *bPool, int page, int *quantidade);
 int createTable( char *TableName, field *Attributes, int numberAtt);
 
 /**

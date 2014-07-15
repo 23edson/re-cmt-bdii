@@ -43,10 +43,10 @@ int main(){
 		
 		inserts[0].type = String; 
 		inserts[0].Str = malloc(sizeof(char)*5); //O tamanho da String não interessa. A função usará o tamanho definido no metadados da tabela
-		strcpy(inserts[0].Str, "Impala");
+		strcpy(inserts[0].Str, "HB20");
 		inserts[1].type = Ndouble;
 		inserts[1].Ddouble = malloc(sizeof(double));
-		*inserts[1].Ddouble = 3.6;
+		*inserts[1].Ddouble = 1.8;
 		inserts[2].type = Nint;
 		inserts[2].Dint = malloc(sizeof(int));
 		*inserts[2].Dint = 2014;
@@ -61,6 +61,7 @@ int main(){
 		//printf("%d\n\n",erro);
 		
 	}
+	//puts("vvvv");	
 	/*struct meta{
 		int id;
 		char atnome[40];
@@ -94,22 +95,70 @@ int main(){
 	*/
 	
 
-
-								   
+inserts[0].type = String; 
+		inserts[0].Str = malloc(sizeof(char)*5); //O tamanho da String não interessa. A função usará o tamanho definido no metadados da tabela
+		strcpy(inserts[0].Str, "HB20");
+		inserts[1].type = Ndouble;
+		inserts[1].Ddouble = malloc(sizeof(double));
+		*inserts[1].Ddouble = 1.8;
+		inserts[2].type = Nint;
+		inserts[2].Dint = malloc(sizeof(int));
+		*inserts[2].Dint = 2014;
+		inserts[3].type = Caracter;
+		inserts[3].Str= malloc(sizeof(char));
+		*inserts[3].Str = 'B';
+		//erro = insertInto("myCar", inserts);	puts("vvvvpppppp");				   
 		erro = fillBuffer(&bufferPool,"myCar", 1);
+		erro = fillBuffer(&bufferPool,"myCar", 2);
+		erro = fillBuffer(&bufferPool,"myCar", 3);
+		erro = fillBuffer(&bufferPool,"Cliente", 1);
+		erro = fillBuffer(&bufferPool,"Cliente", 2);
+		erro = fillBuffer(&bufferPool,"Cliente", 3);
+		//Element_t *inserts1 = (Element_t *) malloc(sizeof(Element_t) * 2);
+		/*field *atributos1 = (field *) malloc(sizeof(field)*2);
 		
+		strcpy(atributos1[0].fName, "Nome");
+		atributos1[0].fType = 'S';
+		atributos1[0].fLenght = 10;
 	
+		strcpy(atributos1[1].fName, "Idade");
+		atributos1[1].fType = 'I';
+		atributos1[1].fLenght = 2; //Double desconsidera o tamanho 
+		
+		erro = createTable("Cliente", atributos1,2);
+		inserts1[0].type = String; 
+		inserts1[0].Str = malloc(sizeof(char)*4); //O tamanho da String não interessa. A função usará o tamanho definido no metadados da tabela
+		strcpy(inserts1[0].Str, "Nois");
+		inserts1[1].type = Nint;
+		inserts1[1].Dint = malloc(sizeof(int));
+		*inserts1[1].Dint = 30;
+		erro = insertInto("Cliente", inserts1);
+		
+	//printf("%c ", bufferPool->bp[1].data[0]);
 	
-	//
-		myElem = extractTupleFromBP(bufferPool,1);
+	*/
+		//myElem = extractTupleFromBP(bufferPool,1); //puts("aqz");
+		myElem = extractTuplesFromPage(bufferPool,1);
 		//printf(" %p ", myElem);
 	//puts("aq//ui");	
 		if(!myElem)
-			puts("aq");
-		printf(" %s ",  myElem[0].Str);
-		printf(" %f ", *myElem[1].Ddouble);
-		printf(" %d ", *myElem[2].Dint);
-		printf(" %c ", *myElem[3].Str);
+			puts(" aq");
+		
+		puts(myElem[0].Str);
+		//printf(" %f ", *myElem[1].Ddouble);
+		printf(" %d ", *myElem[1].Dint);
+		//printf(" %c ", *myElem[3].Str);
+		puts(myElem[2].Str);
+		//printf(" %f ", *myElem[5].Ddouble);
+		printf(" %d ", *myElem[3].Dint);
+		//printf(" %c ", *myElem[7].Str);
+		
+		puts(myElem[4].Str);
+		//printf(" %f ", *myElem[9].Ddouble);
+		printf(" %d ", *myElem[5].Dint);
+		//printf(" %c ", *myElem[11].Str);
+		//
+		//
 	//bufferPool->bp[0]->data[];*/
 	
 	/*FILE *p = fopen("files/data/file_1.dat", "r");
@@ -118,7 +167,7 @@ int main(){
 	int v1;
 	double v2;
 	char v3;
-	fseek(p, 112, SEEK_SET);
+	fseek(p, 28, SEEK_SET);
 	fread(v, sizeof(char), 15, p);
 	fread(&v2, sizeof(double), 1, p);
 	fread(&v1, sizeof(int), 1, p);
