@@ -302,10 +302,7 @@ void applyReplacementPolicies(buffer *bPool){
 	//A página encontrada fica armazenada em bPage
 	if(bPage.rewriteBit == 1){
 		//Aqui deve ser colocado o código para regravação do arquivo.
-		Element_t *cr=NULL;
-		cr=extractTupleFromBP(bPool,j);
 		
-		free(cr);
 	}
 	else{
 		bPool->bp[i].diskSeek = -1;
@@ -1355,5 +1352,74 @@ int insertInto( char *tableName, Element_t *Attributes){
 	fclose(metadados);
 	fclose(newFile);
 	return OKAY;
+}
+int returnDisk(bufferPage *bp){
+	FILE *arq=NULL;
+	arq=fopen("files/fs_tabela.dat","r");
+	if(!arq)
+		return FILE_NOT_FOUND;
+	char *caminho=NULL;
+	caminho=(char*)malloc(sizeof(char)*CONST);
+	if(!caminho){
+		fclose(arq);
+	}
+	criar *biblio=NULL;
+	biblio=(criar*)malloc(sizeof(criar));
+	if(biblio==NULL){
+		fclose(arq);
+		free(caminho);
+		return OUT_MEMORIA;
+	}
+	int i = 0, achou=0;
+	int endLoop = 0;
+	
+	fseek(arq,0,SEEK_END); //Coloca o ponteiro do arquivo (tabela) no final.
+	long total = ftell(arq); //Retorna o posição atual do ponteiro no arquivo.
+	rewind(tabela); //Coloca o ponteiro no início do arquivo.
+	
+	for(;endLoop < total; endLoop += CONST_MAX ){
+		fread(&biblio->id, sizeof(int), 1, arq);
+		fread(biblio->lnome,sizeof(char),CONST,arq);
+		fread(biblio->fnome,sizeof(char),CONST,arq);
+		fread(biblio->dir,sizeof(char),CONST,arq);
+		if(biblio->id==bp.idNumber){	
+			achou=1;
+			strcpy(caminho,biblio->dir);
+			strcat(caminho,biblio->fnome);
+			break; // sai do loop pois encontrou a tabela
+		}
+		
+	}
+	if (achou == 0){ 
+		fclose(arq);
+		free(caminho);
+		free(biblio);
+		return TABLE_NOT_FOUND;
+		 // fecha arquivo do dicionario
+	}
+	fclose(arq);
+	FILE *dado=NULL;
+	if((dado=fopen(caminho,"r+"))==NULL){
+		free(caminho);
+		free(biblio);
+		return FILE_DATA_NOT_FOUND;
+	};
+	fseek(dado,0,SEEK_END);
+	total=ftell(dado);
+	rewind(dado);
+	
+	for(i=0,endLoop=0;i<bp.fieldCount;i++){
+		endLoop+=bp->fieldList[i].fLenght;
+	};
+	if(endLoop < bp.diskSeek){
+		if(bp.diskSeek/endLoop!=1){
+			fseek(dado,bp.diskSeek-endLoop,SEEK_SET);
+		}
+	}
+		
+	for(i=0,j = 0;i < endLoop && j < bp.fieldCount;j++){	
+		fwrite(&bp.data[i],bp.fieldList[j].fLenght,1,dado);
+		i+=bp.fieldList[j].fLenght;
+	}
 }
 

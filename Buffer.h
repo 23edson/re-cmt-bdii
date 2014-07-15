@@ -82,7 +82,7 @@ typedef struct bufferPage
 	int countTuples;
 	field *fieldList;
 	int fieldCount;
-	int diskSeek; 
+	int diskSeek; //endereço final dos dados ou onde é gravado os proximos 
 	int pinCount; //Pin Count
 	int rewriteBit;//Dirty Bit
 	char *data; //Tupla de dados
