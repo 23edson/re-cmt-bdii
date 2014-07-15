@@ -2,18 +2,15 @@
 
 int main(){
 	
-	buffer *bufferPool = NULL;
-	Element_t *myElem = NULL;
-	//int i = 1;
-	int erro;
+	buffer *bufferPool = NULL; //Buffer NULO
+	Element_t *myElem = NULL; //Variável que seŕa alocada posteriormente
+	int erro; //Irá pegar os possíveis vindos das funções
 	
 	field *atributos; //o usuario faz uso de um vetor para os atributos que ele ira criar;
 	Element_t *inserts; //Struct serve para inserções na tabela
-	//int contador = 0;
-	
 	
 	atributos = (field *) malloc(sizeof(field)*4); //Neste caso terá quatro atributos;
-	inserts = (Element_t *) malloc(sizeof(Element_t) * 4);  //Cada posição do vetor representa um atributo.
+	inserts = (Element_t *) malloc(sizeof(Element_t) * 4);  //Cada posição do vetor representa um atributo(Mesmo número definido em atributos)
 	
 	
 	strcpy(atributos[0].fName, "Model");
@@ -22,27 +19,28 @@ int main(){
 	
 	strcpy(atributos[1].fName, "Motor");
 	atributos[1].fType = 'D';
-	atributos[1].fLenght = 8; //Double desconsidera o tamanho 
-	
-	
+	atributos[1].fLenght = 8; //Aqui o tamanho pode ser desconsidera, já que as funções gravam double com o seu tamanho já definido 
 	
 	strcpy(atributos[2].fName, "YearFab");
 	atributos[2].fType = 'I';
-	atributos[2].fLenght = 4; //Para inteiros, tamanho representa a quantidade de dígitos do número. ex: tamanho 4 (aceita números de 0 até 9999);
+	atributos[2].fLenght = 4; /*Para inteiros, tamanho representa a quantidade de dígitos do número. 
+								ex: tamanho 4 (aceita números de 0 até 9999);*/
 
 	strcpy(atributos[3].fName, "Class");
 	atributos[3].fType = 'C';
-	atributos[3].fLenght = 1; //tipo caracter desconsidera o tamanho
+	atributos[3].fLenght = 1; //O tamanho de caracter é 1byte, esse atributo não é precisamente necessário neste caso.
 	
 	
+	/*Cria uma tabela chamada 'myCar', com os atributos no segundo parâmetros, e a quantidade de atributos
+	 * que é definida no terceiro parâmetro */
+	erro = createTable("myCar", atributos,4); 
 	
-	erro = createTable("myCar", atributos,4);
 	
-	//printf("erro: %d\n", erro);
 	if(erro == OKAY){ //se a criação da tabela teve sucesso 
 		
 		inserts[0].type = String; 
-		inserts[0].Str = malloc(sizeof(char)*5); //O tamanho da String não interessa. A função usará o tamanho definido no metadados da tabela
+		inserts[0].Str = malloc(sizeof(char)*5); /*O tamanho da String não interessa. 
+		                                          A função usará o tamanho definido no metadados da tabela*/
 		strcpy(inserts[0].Str, "HB20");
 		inserts[1].type = Ndouble;
 		inserts[1].Ddouble = malloc(sizeof(double));
@@ -54,121 +52,58 @@ int main(){
 		inserts[3].Str= malloc(sizeof(char));
 		*inserts[3].Str = 'B';
 		
-		//puts("aqu");
-		//printf("c:%c", *inserts[3].Str);
-		
+	
+		/*Será inserido uma tupla na tabela 'myCar', com o segundo parâmetro sendo o conteúdo a ser inserido */
 		erro = insertInto("myCar", inserts);
-		//printf("%d\n\n",erro);
+		
 		
 	}
-	//puts("vvvv");	
-	/*struct meta{
-		int id;
-		char atnome[40];
-		char tipo;
-		int tam;
-	};
-	typedef struct meta META;
 	
-	META di[4];*/
-	
-	
-	//Attribute in;
+	if(erro == OKAY){
 
-	/*FILE *m = fopen("files/data/file_1.dat", "r");if(!m) return 2;
-	int g;
-	double v;
-	char b;
-	fseek( m, 0, SEEK_SET);
-	
-	char *t;
-	t =	malloc(sizeof(char)*15);
-	fread( t, sizeof(char), 15,m); puts(t);
-	fread( &v, sizeof(double), 1,m); printf("vd %f\n", v);
-	
-	
-	
-	
-	//fread( &v, sizeof(double), 1,m); printf("m %f\n", v);
-	fread( &g, sizeof(int), 1,m); printf("vt %d\n", g);
-	fread( &b, sizeof(char), 1,m);printf(" f:%c ", b);
-	*/
-	
-
-inserts[0].type = String; 
-		inserts[0].Str = malloc(sizeof(char)*5); //O tamanho da String não interessa. A função usará o tamanho definido no metadados da tabela
-		strcpy(inserts[0].Str, "HB20");
-		inserts[1].type = Ndouble;
-		inserts[1].Ddouble = malloc(sizeof(double));
-		*inserts[1].Ddouble = 1.8;
-		inserts[2].type = Nint;
-		inserts[2].Dint = malloc(sizeof(int));
-		*inserts[2].Dint = 2014;
-		inserts[3].type = Caracter;
-		inserts[3].Str= malloc(sizeof(char));
-		*inserts[3].Str = 'B';
-		//erro = insertInto("myCar", inserts);	puts("vvvvpppppp");				   
+		/*Se conseguiu inserir a tupla no arquivo em disco. Próximo passo é carregá-la para
+		 * o buffer. Assim essa função se encarrega disso, passando o endereço de um ponteiro NULO ( Na primera chamada );
+		 * segundo parâmetro é a tabela de qual será retirada a tupla. último parÂmetro é o número da tupla no disco,
+		 * considera a ordem de inserção no arquivo.
+		 * Para inserir mais de uma tupla, a função deve ser chamada n vezes, onde o terceiro parametro recebe o número
+		 * de incremento.
+		 * 
+		 * Ex: while( i < nTuplas)
+		 * 		fillBuffer(&bufferPool,"myCar", i)
+		 * 		i++;
+		 * */
+		
+	}
 		erro = fillBuffer(&bufferPool,"myCar", 1);
-		erro = fillBuffer(&bufferPool,"myCar", 2);
-		erro = fillBuffer(&bufferPool,"myCar", 3);
-		erro = fillBuffer(&bufferPool,"Cliente", 1);
-		erro = fillBuffer(&bufferPool,"Cliente", 2);
-		erro = fillBuffer(&bufferPool,"Cliente", 3);
-		//Element_t *inserts1 = (Element_t *) malloc(sizeof(Element_t) * 2);
-		/*field *atributos1 = (field *) malloc(sizeof(field)*2);
 		
-		strcpy(atributos1[0].fName, "Nome");
-		atributos1[0].fType = 'S';
-		atributos1[0].fLenght = 10;
-	
-		strcpy(atributos1[1].fName, "Idade");
-		atributos1[1].fType = 'I';
-		atributos1[1].fLenght = 2; //Double desconsidera o tamanho 
+		if(erro == OKAY){
+			
 		
-		erro = createTable("Cliente", atributos1,2);
-		inserts1[0].type = String; 
-		inserts1[0].Str = malloc(sizeof(char)*4); //O tamanho da String não interessa. A função usará o tamanho definido no metadados da tabela
-		strcpy(inserts1[0].Str, "Nois");
-		inserts1[1].type = Nint;
-		inserts1[1].Dint = malloc(sizeof(int));
-		*inserts1[1].Dint = 30;
-		erro = insertInto("Cliente", inserts1);
-		
-	//printf("%c ", bufferPool->bp[1].data[0]);
+			/*Sera extraído do buffer, a primeira tupla inserida, o terceiro parametro irá receber a quantidade de elementos retornados.
+			 * Ou em caso de erro, recebe a flag Do erro */
+			myElem = extractTupleFromBP(bufferPool, 1, &erro); 
+			//puts(myElem[0].Str);
+			/*Será estraído uma ou mais tupla do buffer, de modo que pertencem a mesma página.
+			 * neste caso, página zero;
+			 * 
+				myElem = extractTuplesFromPage(bufferPool,0, &erro);
+			*/
+			int i = 0;
+			if(myElem){
+				while( i < erro){
+					if(myElem[i].type == String)
+						puts(myElem[i].Str);
+					else if(myElem[i].type== Ndouble)
+						printf("%f", *myElem[i].Ddouble);
+					else if(myElem[i].type == Nint)
+						printf("%d", *myElem[i].Dint);
+					else
+						printf("%c", *myElem[i].Str);
+				i++;
+				}
+			}
+		}
 	
-	*/
-		myElem = extractTupleFromBP(bufferPool,1); //puts("aqz");
-	
-		//printf(" %p ", myElem);
-	//puts("aq//ui");	
-		if(!myElem)
-			puts(" aq");
-		
-		printf(" %s \t",myElem[0].Str);
-		printf(" %f \t", *myElem[1].Ddouble);
-		printf(" %d \t", *myElem[2].Dint);
-		printf(" %c \t", *myElem[3].Str);
-	//bufferPool->bp[0]->data[];*/
-	
-	/*FILE *p = fopen("files/data/file_1.dat", "r");
-	
-	char v[15];
-	int v1;
-	double v2;
-	char v3;
-	fseek(p, 28, SEEK_SET);
-	fread(v, sizeof(char), 15, p);
-	fread(&v2, sizeof(double), 1, p);
-	fread(&v1, sizeof(int), 1, p);
-	fread(&v3, sizeof(char), 1, p);
-	
-	puts(v);
-	printf("%f", v2);
-	printf(" %d ", v1);
-	printf(" %c ", v3);*/
-	
-	//if(showBuffer(bufferPool));
-	puts("\n");	
 	return 0;
 
 }

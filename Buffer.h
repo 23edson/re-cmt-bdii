@@ -82,10 +82,10 @@ typedef struct bufferPage
 	int countTuples;
 	field *fieldList;
 	int fieldCount;
-	int diskSeek; //endereço final dos dados ou onde é gravado os proximos 
-	int pinCount; //Pin Count
-	int rewriteBit;//Dirty Bit
-	char *data; //Tupla de dados
+	int diskSeek; 
+	int pinCount; 
+	int rewriteBit;
+	char *data; 
 }bufferPage;
 
 /**
@@ -103,16 +103,8 @@ typedef struct buffer
 	int countItems;
 	int countMeta;
 	int nextPageAvaliable;
-	//bufferPage *itens;
 	bufferPage bp[BP_PAGES];
 }buffer;
-
-/*typedef struct tupla{
-	char tipo;
-	char *String;
-	int *Dint;
-	double *Ddouble;
-}myRow;*/
 
 /**
  * @struct Elemento - Representa um dado, que eventualmente será extraído do buffer.
@@ -127,21 +119,6 @@ typedef struct Elemento {
     double    *Ddouble;
   };
 }Element_t;
-
-//Inicializa o buffer
-void initBuffer(buffer *bPool);
-
-//Procura a próxima página disponível
-void findNextAvaliable(buffer *bPool);
-
-//Aplica as políticas de troca
-void applyReplacementPolicies(buffer *bPool);
-
-//Insere um novo elemento no buffer
-
-int bufferInsert(buffer *bPool,char *tupla,int tupleLenght, field *fieldList, int fieldCount, int id);
-
-//Função que vai ler os arquivos de dados e metadados
 
 /**
  * O objetivo dessa função é recuperar uma tupla de uma tabela em disco, e
@@ -165,13 +142,10 @@ int bufferInsert(buffer *bPool,char *tupla,int tupleLenght, field *fieldList, in
  *   	FILE_DATA_NOT_FOUND : O Arquivo de dados não foi encontrado no disco;
  * 		TUPLE_NOT_FOUND : o @param contador é menor que 1 ou maior que o número de tuplas no disco;
  * 		OKAY : A função copiou a tupla para o buffer e finalizou com sucesso.
+ * 
+ * *Lembre-se de liberar o espaço alocado para bufferPool ao final.
  **/
 int fillBuffer(buffer **bufferPool, char *nomeTabela, int contador);
-
-//Função que mostrará o conteúdo do Buffer Pool na tela
-int showBuffer(buffer *bufferPool,int page);
-
-int getTupleNumber(FILE *arquivo, int position, int tamTuple);
 
 /**
  *Extrai uma tupla específica do buffer, considerando a ordem de inserção. 
@@ -183,15 +157,46 @@ int getTupleNumber(FILE *arquivo, int position, int tamTuple);
  * 
  * @param buffer *bufferPool - variável não pode ser nula;
  * @param int tupleNumber - Número da tupla a ser extraída. Considera a ordem de inserção no buffer.
+ * @param int *quantidade - número de elementos que serão retornados pela função.Em caso de falha,
+  * essa variável recebe a flag de erro.
+ * 
  * @return Element_t - Após pegar uma tupla do buffer, é alocado uma struct
  * assim, ela é devolvida com seus devidos elementos.
- * Em caso de bufferPool for nulo ou tupleNumber não foi um número válido ou a função não conseguir
+ * Em caso de bufferPool for nulo/vazio ou tupleNumber não foi um número válido ou a função não conseguir
  * alocar memória, a mesma retorna nulo.
  * 
+ * - @param int *quantidade - Recebe uma flag em caso de erro, podendo ser ela ABORT, EMPTY_BUFFER ou TUPLE_NOT_FOUND;
+ * 
+ * 	ABORT - Recebeu algum valor inválido;
+ *  EMPTY_BUFFER - O buffer não possui nenhuma tupla;
+ *  TUPLE_NOT_FOUND - A tupla requirida não existe no buffer.
+ * 
  **/
-Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
+Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber, int *quantidade);
 
-/**
+
+ /**
+  * Extrai um conjunto de tuplas armazenados em uma página.
+  * 
+  * @param buffer *bPool - buffer de onde serão extraídas as tuplas, deve ser não nulo.
+  * @param int page - número da página em que será copiados as tuplas;
+  * @param int *quantidade - número de elemetos que serão retornados pela função. Em caso de falha,
+  * essa variável recebe a flag de erro.
+  * 
+  * @return Element_t - Após pegar uma ou mais tupla do buffer, é alocado uma struct
+ * assim, ela é devolvida com seus devidos elementos.
+ * Em caso de bufferPool for nulo/vazio ou tupleNumber não foi um número válido ou a função não conseguir
+ * alocar memória, a mesma retorna nulo.
+ *  - @param int *quantidade - Recebe uma flag em caso de erro, podendo ser ela ABORT, EMPTY_BUFFER ou VALOR_INVALIDO;
+ * 
+ * 	ABORT - Recebeu algum valor inválido;
+ *  EMPTY_BUFFER - O buffer não possui nenhuma tupla;
+ *  VALOR_INVALIDO - A página requisitada não existe no buffer.
+  * 
+  **/
+ Element_t *extractTuplesFromPage(buffer *bPool, int page, int *quantidade);
+ 
+ /**
  * Cria uma tabela em disco conforme os parâmetros passados.
  * 
  * @param char *tableName - Nome lógico da tabela a ser criada. Aceita apenas letras de [a-z] e [A-Z].
@@ -211,9 +216,11 @@ Element_t *extractTupleFromBP(buffer *bufferPool ,int tupleNumber);
  * 		FILE_META_NOT_FOUND : Arquivo fs_coluna.dat não foi localizado;
  * 		VALUE_ALREADY_EXISTS: A tabela já existe no disco;
  * 		OKAY - A tabela e seus metadados foram devidamente criados e gravados no disco;
+ * 
+ * *Liberar o espaço após o uso é de responsabilidade do usuário.
  * 		
  **/
-int createTable( char *TableName, field *Attributes, int numberAtt);
+ int createTable( char *TableName, field *Attributes, int numberAtt);
 
 /**
  * Seu objetivo é inserir uma tupla em uma tabela específica;
@@ -236,4 +243,3 @@ int createTable( char *TableName, field *Attributes, int numberAtt);
  * 		OKAY : A tupla foi inserida no arquivo de dados devidamente.
  **/
 int insertInto( char *tableName, Element_t *Attributes);
-
