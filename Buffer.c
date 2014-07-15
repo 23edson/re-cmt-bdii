@@ -1441,10 +1441,10 @@ int returnDisk(bufferPage *bp){
 	};
 	if(endLoop*bp->countTuples < bp->diskSeek){
 		if(bp->diskSeek/endLoop!=1){
-			fseek(dado,bp->diskSeek-endLoop,SEEK_SET);
+			rewind(dado);
 		}
 	}
-	for(i=0,j = 0;i < endLoop && j < bp->fieldCount;j++){	
+	for(i=0,j = 0,achou=0;i < endLoop && j < bp->fieldCount && achou + 1 <= bp->countTuples;j++){	
 		if(bp->fieldList[j].fType=='I'){
 			fwrite(&bp->data[i],sizeof(int),1,dado);
 			i+=sizeof(int);
@@ -1460,8 +1460,11 @@ int returnDisk(bufferPage *bp){
 		else if(bp->fieldList[j].fType=='C'){
 			fwrite(&bp->data[i],sizeof(char),1,dado);
 			i+=sizeof(char);
-		}
-		
+		};
+		if( j+1 == bp->fieldCount && achou+1 < bp->countTuples ){
+			i=0;
+			achou++;
+		};
 	};
 	
 	return OKAY;

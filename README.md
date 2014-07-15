@@ -52,6 +52,8 @@ int insertInto( char *tableName, Element_t *Attributes);
 
 int counter( int init, FILE *metadados, int total, criar *myTable );
 
+int returnDisk(bufferPage *bp);
+
 Dicionario:
 files/fs_tabela.dat
 estrutura:
