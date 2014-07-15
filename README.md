@@ -155,10 +155,11 @@ Funções NÃO disponíveis para o usuário:;
 	8.int searchTable(FILE *arquivo, char *Tabela, criar **myTable);
 	9.int checkMeta( field estrutura[], int numberAtt);
 	10.int counter( int init, FILE *metadados, int total, criar *myTable );
-	11.char *GeneratePhysName( char *last);
-	12.void cpyvar(char *tupla,char *vd,int init,int tam);
-	13.void copia_string( char *destino,char *origem, int initOrigem, int destTam);
-	14.void initBuffer(buffer *bPool);
+	11.int returnDisk(bufferPage *bp);
+	12.char *GeneratePhysName( char *last);
+	13.void cpyvar(char *tupla,char *vd,int init,int tam);
+	14.void copia_string( char *destino,char *origem, int initOrigem, int destTam);
+	15.void initBuffer(buffer *bPool);
 
 
 	1. Função que concretiza a inserção de uma tupla no buffer. Após a tupla requisitada ser encontrada e 
@@ -184,27 +185,30 @@ Funções NÃO disponíveis para o usuário:;
 	10. Conta o números de atributos de uma tabela, analisando o número que identifica a tabela. A contagem é feita
 	    a partir do arquivo fs_coluna.dat, onde estão definidos os metadados.
 	
-	11. Função que gera um nome físico para os arquivos de uma tabela, ex : O formato escolhido é file_0.dat,
+	
+	11. Essa função grava uma página do buffer no disco. (maiores detalhes no arquivo Buffer.c);
+	
+	12. Função que gera um nome físico para os arquivos de uma tabela, ex : O formato escolhido é file_0.dat,
 	    substituindo 0 por um número sequêncial maior que zero.
 
 	
-	12. Copia uma sequência de caracteres de acordo com os tamanhos específicados;
+	13. Copia uma sequência de caracteres de acordo com os tamanhos específicados;
 	    Os dados copiados, são gravador a partir de uma posição x na String.
 
-	13. Copia uma sequência de caracteres de acordo com os tamanhos específicados;
+	14. Copia uma sequência de caracteres de acordo com os tamanhos específicados;
       	    Função semelhante a número 12, entretando nessa os dados são gravados sempre a partir do índice zero.
 
-	14. Inicializa o buffer com os valores default.
+	15. Inicializa o buffer com os valores default.
 
 
-
+*Os parâmetros e retornos desta função estão descritos ao início de cada função no arquivo Buffer.c.
 ---------------------------------------
 Organização do Dicionário de dados:
 
  --Possui um diretório chamado 'files'. Este diretório é fixo e NÃO pode ser alterado,
 assim como, não pode ser renomeado.
 
-dentro dele estão presentes dois arquivos .dat e um diretório chamado 'data'
+dentro dele estão presentes dois arquivos .dat e um diretório chamado 'data'.
 
 Primeiro deles : fs_tabela.dat;
  -Neste arquivo estão descritos informações gerais sobre as tabelas.
@@ -285,3 +289,8 @@ Imagine 2 tabelas e um insertInto em cada uma:
 	Teclado | 20.50000
 
 	*Obviamente que os nomes de índices dessas tabelas não estão gravados nos arquivos, é apenas para representação neste exemplo.
+
+
+----------------------
+Este programa foi compilado com o GCC da seguinte maneira:
+	:gcc *.c -o main -Wall 
