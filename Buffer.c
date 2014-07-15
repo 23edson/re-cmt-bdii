@@ -291,31 +291,36 @@ void findNextAvaliable(buffer *bPool){
 void applyReplacementPolicies(buffer *bPool){
 	//Aqui é escolhido a página do buffer que tem o menor pinCount para ser substituida
 	int i,j=0, lower = bPool->bp[0].pinCount;
-	bufferPage bPage = bPool->bp[0];
+	bufferPage *bPage = &bPool->bp[0];
 	for(i = 0; i < BP_PAGES; i++){
 		if(bPool->bp[i].pinCount < lower){
-			bPage = bPool->bp[j];
+			bPage = &bPool->bp[j];
 			lower = bPool->bp[j].pinCount;
 			j=i;
 		}
 	}
 	//A página encontrada fica armazenada em bPage
-	if(bPage.rewriteBit == 1){
+	if(bPage->rewriteBit == 1){
 		//Aqui deve ser colocado o código para regravação do arquivo.
-		i=returnDisk(&bPage);
+		i=returnDisk(bPage);
 		if(i==OKAY)
-			bPage.rewriteBit=0;
-			free(bPage.fieldList);
-			bPage.idNumber=0;
-			bPage.countTuples=0;
-			bPage.fieldCount=0;
-			bPage.pinCount=0;
-			bPage.diskSeek = -1;
-			memset(bPage.data,0,BP_SIZE);
+			bPage->rewriteBit=0;
+			free(bPage->fieldList);
+			bPage->idNumber=0;
+			bPage->countTuples=0;
+			bPage->fieldCount=0;
+			bPage->pinCount=0;
+			bPage->diskSeek = -1;
+			memset(bPage->data,0,BP_SIZE);
 			bPool->nextPageAvaliable = j;
 	}
 	else{
+		bPage->idNumber=0;
+		bPage->countTuples=0;
+		bPage->fieldCount=0;
+		bPage->pinCount=0;
 		bPool->bp[j].diskSeek = -1;
+		memset(bPage->data,0,BP_SIZE);
 		bPool->nextPageAvaliable = j;
 	}
 }
@@ -1381,7 +1386,7 @@ int returnDisk(bufferPage *bp){
 		free(caminho);
 		return OUT_MEMORIA;
 	}
-	int i = 0, achou=0;
+	int i = 0,j=0, achou=0;
 	int endLoop = 0;
 	
 	fseek(arq,0,SEEK_END); //Coloca o ponteiro do arquivo (tabela) no final.
@@ -1434,12 +1439,11 @@ int returnDisk(bufferPage *bp){
 			endLoop+=sizeof(char);
 		}
 	};
-	if(endLoop < bp->diskSeek){
+	if(endLoop*bp->countTuples < bp->diskSeek){
 		if(bp->diskSeek/endLoop!=1){
 			fseek(dado,bp->diskSeek-endLoop,SEEK_SET);
 		}
 	}
-	int j;	
 	for(i=0,j = 0;i < endLoop && j < bp->fieldCount;j++){	
 		if(bp->fieldList[j].fType=='I'){
 			fwrite(&bp->data[i],sizeof(int),1,dado);

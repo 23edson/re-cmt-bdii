@@ -144,10 +144,10 @@ inserts[0].type = String;
 		if(!myElem)
 			puts(" aq");
 		
-		puts(myElem[0].Str);
-		printf(" %f ", *myElem[1].Ddouble);
-		//printf(" %d ", *myElem[2].Dint);
-		//printf(" %c ", *myElem[3].Str);
+		printf(" %s \t",myElem[0].Str);
+		printf(" %f \t", *myElem[1].Ddouble);
+		printf(" %d \t", *myElem[2].Dint);
+		printf(" %c \t", *myElem[3].Str);
 	//bufferPool->bp[0]->data[];*/
 	
 	/*FILE *p = fopen("files/data/file_1.dat", "r");
@@ -168,7 +168,7 @@ inserts[0].type = String;
 	printf(" %c ", v3);*/
 	
 	//if(showBuffer(bufferPool));
-		
+	puts("\n");	
 	return 0;
 
 }
