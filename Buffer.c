@@ -302,11 +302,21 @@ void applyReplacementPolicies(buffer *bPool){
 	//A página encontrada fica armazenada em bPage
 	if(bPage.rewriteBit == 1){
 		//Aqui deve ser colocado o código para regravação do arquivo.
-		
+		i=returnDisk(bPage);
+		if(i==OKAY)
+			bPage.rewriteBit=0;
+			free(bPage.fieldList);
+			bPage.idNumber=0;
+			bPage.countTuples=0;
+			bPage.fieldCount=0;
+			bPage.pinCount=0;
+			bPage.diskSeek = -1;
+			memset(bPage.data,0,BP_SIZE);
+			bPool->nextPageAvaliable = j;
 	}
 	else{
-		bPool->bp[i].diskSeek = -1;
-		bPool->nextPageAvaliable = i;
+		bPool->bp[j].diskSeek = -1;
+		bPool->nextPageAvaliable = j;
 	}
 }
 
@@ -1438,5 +1448,6 @@ int returnDisk(bufferPage *bp){
 		
 	};
 	
+	return OKAY;
 }
 
