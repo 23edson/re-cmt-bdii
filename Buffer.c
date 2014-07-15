@@ -1404,6 +1404,7 @@ int returnDisk(bufferPage *bp){
 		free(biblio);
 		return FILE_DATA_NOT_FOUND;
 	};
+	free(caminho);
 	fseek(dado,0,SEEK_END);
 	total=ftell(dado);
 	rewind(dado);
@@ -1418,8 +1419,23 @@ int returnDisk(bufferPage *bp){
 	}
 		
 	for(i=0,j = 0;i < endLoop && j < bp.fieldCount;j++){	
-		fwrite(&bp.data[i],bp.fieldList[j].fLenght,1,dado);
-		i+=bp.fieldList[j].fLenght;
+		if(bp.fieldList[j].fType=='I'){
+			fwrite(&bp.data[i],sizeof(int),1,dado);
+			i+=sizeof(int);
+		}
+		else if(bp.fieldList[j].fType=='S'){
+			fwrite(&bp.data[i],sizeof(char),bp.fieldList[j].fLenght,dado);
+			i+=sizeof(char)*bp.fieldList[j].fLenght;
+		}
+		else if(bp.fieldList[j].fType=='D'){
+			fwrite(&bp.data[i],sizeof(int),1,dado);
+			i+=sizeof(double);
+		}
+		else if(bp.fieldList[j].fType=='C'){
+			fwrite(&bp.data[i],sizeof(char),1,dado);
+			i+=sizeof(char);
+		}
+		
 	};
 	
 }
