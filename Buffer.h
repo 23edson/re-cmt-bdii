@@ -237,23 +237,3 @@ int createTable( char *TableName, field *Attributes, int numberAtt);
  **/
 int insertInto( char *tableName, Element_t *Attributes);
 
-int returnDisk(bufferPage *bp);
-
-/**
- * Seu Objetivo é gravar no disco do bufferPool
- * 
- * @param bufferPage *bp - pagina do buffer que será regravada no disco
- * 
- * é acessada pela função applyReplacementPolicies
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- **/

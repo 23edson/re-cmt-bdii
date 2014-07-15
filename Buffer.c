@@ -44,7 +44,32 @@ union c_double{
 	double numd;
 	char  cnumd[sizeof(double)];
 };
-	
+int returnDisk(bufferPage *bp);
+
+/**
+ * Seu Objetivo é gravar no disco do bufferPool
+ * 
+ * @param bufferPage *bp - pagina do buffer que será regravada no disco
+ * 
+ * é acessada pela função applyReplacementPolicies
+ * utiliza a pagina do buffer para gravar no disco
+ * primeiro acha o arquivo fisico procurando na files/fs_tabela.dat
+ * após de copiar e abrir o arquivo é fechado a fs_tabela.dat
+ * e calculado pelo fieldList quanto é o espaço utilizado por uma tupla
+ * após verificado quantas tuplas a tabela possui
+ * a seguir é feito as sobre escritas no disco do inicio do arquivo até 
+ * onde está o diskSeek que é local onde acaba os dados. 
+ * 
+ * @return pode retornar
+ * OKAY quando a regravação da certo
+ * FILE_NOT_FOUND quando é alterado o local onde está o fs_tabela.dat
+ * FILE_DATA_NOT_FOUND quando o <arquivo de dados>.dat é mudado de local
+ * OUT_MEMORIA caso a função não consiga alocar memoria para utilizar as estruturas
+ * TABLE_NOT_FOUND caso não consiga achar a tabela no fs_tabela.dat
+ * 
+ **/
+
+
 /**
  * Inicializa o buffer com os valores default.
  * @param buffer *bPool é um ponteiro do tipo buffer não nulo.
@@ -1444,7 +1469,10 @@ int returnDisk(bufferPage *bp){
 			rewind(dado);
 		}
 	}
-	for(i=0,j = 0,achou=0;i < endLoop && j < bp->fieldCount && achou + 1 <= bp->countTuples;j++){	
+	//apartir daqui 'achou' é o contador de tuplas gravadas
+	//'i' é o contador do lugar onde o arquivo aponta
+	// 'j' é o contador de campos para que a cada vez seja o proximo campo a ser escolhido
+	for(i=0,j = 0,achou=0;i < endLoop && j < bp->fieldCount && achou < bp->countTuples;j++){	
 		if(bp->fieldList[j].fType=='I'){
 			fwrite(&bp->data[i],sizeof(int),1,dado);
 			i+=sizeof(int);
@@ -1462,11 +1490,15 @@ int returnDisk(bufferPage *bp){
 			i+=sizeof(char);
 		};
 		if( j+1 == bp->fieldCount && achou+1 < bp->countTuples ){
+			//verifica se na proxima vez que vai rodar o loop vai sair
+			//se for sair precisa verificar se ainda existem tuplas a serem gravadas
+			//para isso 'achou' vai para proxima tupla 'j' é resetado e 'i' também é resetado 
 			i=0;
+			j=-1;
 			achou++;
 		};
 	};
-	
+	//após gravar tudo da pagina pode retornar e liberar a pagina para a proxima tabela ser inserida 
 	return OKAY;
 }
 
