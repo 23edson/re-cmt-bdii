@@ -1421,7 +1421,18 @@ int returnDisk(bufferPage *bp){
 	rewind(dado);
 	
 	for(i=0,endLoop=0;i<bp->fieldCount;i++){
-		endLoop+=bp->fieldList[i].fLenght;
+		if(bp->fieldList[j].fType=='I'){
+			endLoop+=sizeof(int);
+		}
+		else if(bp->fieldList[j].fType=='S'){
+			endLoop+=sizeof(char)*bp->fieldList[j].fLenght;
+		}
+		else if(bp->fieldList[j].fType=='D'){
+			endLoop+=sizeof(double);
+		}
+		else if(bp->fieldList[j].fType=='C'){
+			endLoop+=sizeof(char);
+		}
 	};
 	if(endLoop < bp->diskSeek){
 		if(bp->diskSeek/endLoop!=1){
