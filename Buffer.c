@@ -429,7 +429,7 @@ int bufferInsert(buffer *bPool,char *tupla,int tupleLenght, field *fieldList, in
 	}
 	return ABORT;
 }
-int showBuffer(buffer *bufferPool,int page){
+/*int showBuffer(buffer *bufferPool,int page){
 	if (!bufferPool->countItems) return EMPTY_BUFFER;
 	//Primeiro é mostrado os campos
 	int i, j=0;
@@ -458,7 +458,7 @@ int showBuffer(buffer *bufferPool,int page){
 	printf("\n\n");
 	return 0;
 }
-
+*/
 /**
  *  Faz a contagem de números de atributos de uma tabela.
  *  Funcionamento: a partir de uma número de id específicado, 
