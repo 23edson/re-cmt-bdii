@@ -1420,6 +1420,7 @@ int returnDisk(bufferPage *bp){
 	for(i=0,j = 0;i < endLoop && j < bp.fieldCount;j++){	
 		fwrite(&bp.data[i],bp.fieldList[j].fLenght,1,dado);
 		i+=bp.fieldList[j].fLenght;
-	}
+	};
+	
 }
 
